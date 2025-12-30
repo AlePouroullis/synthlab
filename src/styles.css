@@ -114,6 +114,36 @@ body {
   flex-direction: column;
 }
 
+/* Shared tooltip styles */
+.tooltip {
+  position: absolute;
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s;
+  border: 1px solid var(--border);
+  z-index: 10;
+}
+
+/* Keyboard shortcut styling */
+kbd {
+  display: inline-block;
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 1px 4px;
+  font-family: inherit;
+  font-size: 0.9em;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin: 0 1px;
+}
+
 #app {
   flex: 1;
   display: flex;
@@ -240,21 +270,9 @@ h1 {
 
 /* Tooltip */
 .chat-toggle .tooltip {
-  position: absolute;
   top: 100%;
   right: 0;
   margin-top: 8px;
-  background: var(--bg-elevated);
-  color: var(--text-primary);
-  padding: 6px 10px;
-  border-radius: 4px;
-  font-size: 0.7rem;
-  white-space: nowrap;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.15s;
-  border: 1px solid var(--border);
-  z-index: 10;
 }
 
 .chat-toggle:hover .tooltip {
@@ -405,22 +423,10 @@ button.active {
 }
 
 .panic-btn .tooltip {
-  position: absolute;
   bottom: 100%;
   left: 50%;
   transform: translateX(-50%);
   margin-bottom: 8px;
-  background: var(--bg-elevated);
-  color: var(--text-primary);
-  padding: 6px 10px;
-  border-radius: 4px;
-  font-size: 0.7rem;
-  white-space: nowrap;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.15s;
-  border: 1px solid var(--border);
-  z-index: 10;
 }
 
 .panic-btn:hover .tooltip {
@@ -466,6 +472,32 @@ select:focus {
   margin: 0;
 }
 
+.octave-wrapper {
+  position: relative;
+  margin-left: 8px;
+}
+
+.octave-display {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  background: var(--bg-elevated);
+  padding: 2px 8px;
+  border-radius: 4px;
+  cursor: default;
+}
+
+.octave-wrapper .tooltip {
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 6px;
+}
+
+.octave-wrapper:hover .tooltip {
+  opacity: 1;
+}
+
 .keyboard-toggle {
   display: flex;
   align-items: center;
@@ -496,21 +528,9 @@ select:focus {
 }
 
 .keyboard-toggle .tooltip {
-  position: absolute;
   top: 100%;
   right: 0;
   margin-top: 6px;
-  background: var(--bg-elevated);
-  color: var(--text-primary);
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 0.65rem;
-  white-space: nowrap;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.15s;
-  border: 1px solid var(--border);
-  z-index: 10;
 }
 
 .keyboard-toggle:hover .tooltip {

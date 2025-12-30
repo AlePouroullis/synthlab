@@ -6,10 +6,13 @@
 
 import { SynthEngine } from '../synth/engine';
 import { midiToFrequency, getNoteInfo } from '../synth/types';
+import { createTooltip } from './tooltip';
 
 // Keyboard input state
 let keyboardInputEnabled = true;
+let octaveOffset = 0; // In semitones (12 = 1 octave)
 const KEYBOARD_ENABLED_KEY = 'synthlab-keyboard-enabled';
+const OCTAVE_OFFSET_KEY = 'synthlab-octave-offset';
 
 export function isKeyboardInputEnabled(): boolean {
   return keyboardInputEnabled;
@@ -18,6 +21,25 @@ export function isKeyboardInputEnabled(): boolean {
 export function setKeyboardInputEnabled(enabled: boolean): void {
   keyboardInputEnabled = enabled;
   localStorage.setItem(KEYBOARD_ENABLED_KEY, String(enabled));
+}
+
+export function getOctaveOffset(): number {
+  return octaveOffset;
+}
+
+export function setOctaveOffset(offset: number): void {
+  // Clamp to reasonable range (-3 to +3 octaves)
+  octaveOffset = Math.max(-36, Math.min(36, offset));
+  localStorage.setItem(OCTAVE_OFFSET_KEY, String(octaveOffset));
+  updateOctaveDisplay();
+}
+
+function updateOctaveDisplay(): void {
+  const display = document.getElementById('octave-display');
+  if (display) {
+    const octave = 4 + Math.floor(octaveOffset / 12);
+    display.textContent = `C${octave}`;
+  }
 }
 
 /**
@@ -35,6 +57,27 @@ export function createKeyboard(synth: SynthEngine): HTMLDivElement {
   const heading = document.createElement('h3');
   heading.textContent = 'Keyboard';
   header.appendChild(heading);
+
+  // Octave display with tooltip
+  const octaveWrapper = document.createElement('span');
+  octaveWrapper.className = 'octave-wrapper';
+
+  const octaveDisplay = document.createElement('span');
+  octaveDisplay.id = 'octave-display';
+  octaveDisplay.className = 'octave-display';
+  // Load saved octave offset
+  const savedOctave = localStorage.getItem(OCTAVE_OFFSET_KEY);
+  if (savedOctave !== null) {
+    octaveOffset = parseInt(savedOctave, 10) || 0;
+  }
+  const currentOctave = 4 + Math.floor(octaveOffset / 12);
+  octaveDisplay.textContent = `C${currentOctave}`;
+
+  const octaveTooltip = createTooltip('[Z]/[X] to shift octave');
+
+  octaveWrapper.appendChild(octaveDisplay);
+  octaveWrapper.appendChild(octaveTooltip);
+  header.appendChild(octaveWrapper);
 
   // Keyboard input toggle
   const toggleLabel = document.createElement('label');
@@ -55,9 +98,7 @@ export function createKeyboard(synth: SynthEngine): HTMLDivElement {
   const toggleText = document.createElement('span');
   toggleText.textContent = 'Computer keyboard';
 
-  const tooltip = document.createElement('span');
-  tooltip.className = 'tooltip';
-  tooltip.textContent = 'Toggle with M';
+  const tooltip = createTooltip('Toggle with [M]');
 
   toggleLabel.appendChild(toggleCheckbox);
   toggleLabel.appendChild(toggleText);
@@ -186,7 +227,8 @@ function setupKeyboardInput(synth: SynthEngine): void {
     p: 75, // D#5
   };
 
-  const pressedKeys = new Set<string>();
+  // Track which actual MIDI note is playing for each key (to handle octave changes mid-press)
+  const pressedKeys = new Map<string, number>();
 
   document.addEventListener('keydown', async (e) => {
     // Skip if keyboard input is disabled or if typing in an input field
@@ -196,29 +238,46 @@ function setupKeyboardInput(synth: SynthEngine): void {
     }
 
     const key = e.key.toLowerCase();
+
+    // Octave shifting with Z/X
+    if (key === 'z') {
+      e.preventDefault();
+      setOctaveOffset(octaveOffset - 12);
+      return;
+    }
+    if (key === 'x') {
+      e.preventDefault();
+      setOctaveOffset(octaveOffset + 12);
+      return;
+    }
+
     if (keyMap[key] && !pressedKeys.has(key)) {
       e.preventDefault(); // Prevent typing in page
       // Lazy audio initialization
       if ((window as any).ensureAudio) {
         await (window as any).ensureAudio();
       }
-      pressedKeys.add(key);
-      const midiNote = keyMap[key];
+      const baseMidiNote = keyMap[key];
+      const midiNote = baseMidiNote + octaveOffset;
+      pressedKeys.set(key, midiNote); // Track actual note played
       synth.noteOn(midiToFrequency(midiNote), midiNote);
 
-      const keyEl = document.querySelector(`[data-note="${midiNote}"]`);
+      // Highlight the visual key (base note, not transposed)
+      const keyEl = document.querySelector(`[data-note="${baseMidiNote}"]`);
       keyEl?.classList.add('pressed');
     }
   });
 
   document.addEventListener('keyup', (e) => {
     const key = e.key.toLowerCase();
-    if (keyMap[key]) {
+    if (keyMap[key] && pressedKeys.has(key)) {
+      const midiNote = pressedKeys.get(key)!;
       pressedKeys.delete(key);
-      const midiNote = keyMap[key];
       synth.noteOff(midiNote);
 
-      const keyEl = document.querySelector(`[data-note="${midiNote}"]`);
+      // Remove highlight from visual key
+      const baseMidiNote = keyMap[key];
+      const keyEl = document.querySelector(`[data-note="${baseMidiNote}"]`);
       keyEl?.classList.remove('pressed');
     }
   });

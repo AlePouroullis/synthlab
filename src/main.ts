@@ -7,6 +7,7 @@
 import { SynthEngine, DEFAULT_CONFIG } from './synth';
 import { createPanel, createSlider, createSelect } from './ui/controls';
 import { createKeyboard, isKeyboardInputEnabled, setKeyboardInputEnabled } from './ui/keyboard';
+import { createTooltip } from './ui/tooltip';
 import { WaveformVisualizer } from './visualizers/waveform';
 import { WebSocketClient } from './websocket-client';
 import { ChatClient, createChatPanel } from './chat';
@@ -225,8 +226,8 @@ function buildUI(): void {
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <rect x="3" y="3" width="18" height="18" rx="2"/>
     </svg>
-    <span class="tooltip">Panic — stop all notes</span>
   `;
+  panicBtn.appendChild(createTooltip('Panic — stop all notes'));
   panicBtn.onclick = () => synth.panic();
   masterPanel.appendChild(panicBtn);
 
