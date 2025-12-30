@@ -49,4 +49,9 @@ Open browser, click "Start Audio", then use Claude Code to play:
 
 ## License
 
-MIT — Alé & Claude
+MIT
+
+---
+
+_Made by Alé... but mostly Claude_ 🤖🎹
+<sub>(Don't tell him I wrote this too)</sub>
