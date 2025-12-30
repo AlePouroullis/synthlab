@@ -19,40 +19,22 @@ export class WebSocketClient {
   }
 
   connect(): void {
-    this.createStatusIndicator();
-    this.attemptConnection();
-  }
-
-  private createStatusIndicator(): void {
-    // Create a status indicator in the UI
-    this.statusEl = document.createElement('div');
-    this.statusEl.id = 'ws-status';
-    this.statusEl.style.cssText = `
-      position: fixed;
-      top: 10px;
-      right: 10px;
-      padding: 8px 12px;
-      border-radius: 6px;
-      font-size: 12px;
-      font-weight: 600;
-      z-index: 1000;
-    `;
-    document.body.appendChild(this.statusEl);
+    this.statusEl = document.getElementById('mcp-status');
     this.updateStatus('disconnected');
+    this.attemptConnection();
   }
 
   private updateStatus(status: 'connected' | 'disconnected' | 'connecting'): void {
     if (!this.statusEl) return;
 
-    const statusConfig = {
-      connected: { bg: '#22c55e', text: 'MCP Connected' },
-      disconnected: { bg: '#ef4444', text: 'MCP Disconnected' },
-      connecting: { bg: '#f59e0b', text: 'Connecting...' },
+    const statusText = {
+      connected: 'MCP Connected',
+      disconnected: 'MCP Disconnected',
+      connecting: 'Connecting...',
     };
 
-    const config = statusConfig[status];
-    this.statusEl.style.background = config.bg;
-    this.statusEl.textContent = config.text;
+    this.statusEl.className = `mcp-status ${status}`;
+    this.statusEl.textContent = statusText[status];
   }
 
   private attemptConnection(): void {

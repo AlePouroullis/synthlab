@@ -35,6 +35,45 @@ if (chatContainer) {
   chatContainer.appendChild(createChatPanel(chatClient));
 }
 
+// Chat panel toggle
+const chatToggle = document.getElementById('chat-toggle');
+const CHAT_VISIBLE_KEY = 'synthlab-chat-visible';
+
+function setChatVisible(visible: boolean): void {
+  if (!chatContainer || !chatToggle) return;
+
+  if (visible) {
+    chatContainer.classList.remove('hidden');
+    chatToggle.classList.add('active');
+  } else {
+    chatContainer.classList.add('hidden');
+    chatToggle.classList.remove('active');
+  }
+
+  localStorage.setItem(CHAT_VISIBLE_KEY, String(visible));
+}
+
+function toggleChat(): void {
+  const isHidden = chatContainer?.classList.contains('hidden');
+  setChatVisible(!!isHidden);
+}
+
+// Initialize chat visibility from localStorage
+const savedVisibility = localStorage.getItem(CHAT_VISIBLE_KEY);
+const initiallyVisible = savedVisibility === null ? true : savedVisibility === 'true';
+setChatVisible(initiallyVisible);
+
+// Toggle button click
+chatToggle?.addEventListener('click', toggleChat);
+
+// Keyboard shortcut: Cmd+/ (Mac) or Ctrl+/ (Windows/Linux)
+document.addEventListener('keydown', (e) => {
+  if ((e.metaKey || e.ctrlKey) && e.key === '/') {
+    e.preventDefault();
+    toggleChat();
+  }
+});
+
 /**
  * Build the UI.
  */

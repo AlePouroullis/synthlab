@@ -4,13 +4,35 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SynthLab</title>
+
+    <!-- Fonts: Comment/uncomment to try different options -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Option 1: Space Grotesk - techy/electronic -->
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <!-- Option 2: Inter - clean/professional -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <!-- Option 3: Outfit - modern/geometric -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
     <link rel="stylesheet" href="/src/styles.css" />
   </head>
   <body>
     <div id="app">
       <header>
-        <h1>SynthLab</h1>
-        <p class="intro">A synthesizer that LLMs can play</p>
+        <div class="header-left">
+          <h1>SynthLab</h1>
+          <p class="intro">A synthesizer that LLMs can play</p>
+        </div>
+        <div class="header-right">
+          <span id="mcp-status" class="mcp-status"></span>
+          <button id="chat-toggle" class="chat-toggle" aria-label="Toggle chat panel">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+            <span class="tooltip">Toggle chat (⌘/)</span>
+          </button>
+        </div>
       </header>
 
       <div class="main-layout">
