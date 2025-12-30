@@ -26,6 +26,9 @@ export interface SynthConfig {
   filterCutoff: number; // Frequency in Hz (20-20000)
   filterResonance: number; // Q factor (0.1-30)
   envelope: ADSREnvelope;
+  reverbMix: number; // Wet/dry mix (0-1)
+  reverbDecay: number; // Reverb tail length (0-1, maps to feedback)
+  reverbDamping: number; // High-frequency damping (0-1, 0=bright, 1=dark)
 }
 
 // Default configuration
@@ -41,6 +44,9 @@ export const DEFAULT_CONFIG: SynthConfig = {
     sustain: 0.7,
     release: 0.3,
   },
+  reverbMix: 0.2,
+  reverbDecay: 0.5,
+  reverbDamping: 0.3,
 };
 
 // Note names for building a keyboard

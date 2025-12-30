@@ -71,7 +71,7 @@ export function createKeyboard(synth: SynthEngine): HTMLDivElement {
 
   // Create ~1.5 octaves starting from C4 (MIDI 60)
   const startNote = 60;
-  const endNote = 75; // Through D#5
+  const endNote = 76; // Through E5 (visual completeness)
 
   // Map MIDI notes to keyboard keys for labels
   const midiToKeyLabel: Record<number, string> = {

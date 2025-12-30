@@ -103,6 +103,10 @@ export function createSlider(
     }
   };
 
+  // Return focus to document after interaction so keyboard input works
+  slider.onmouseup = () => slider.blur();
+  slider.ontouchend = () => slider.blur();
+
   group.appendChild(labelEl);
   group.appendChild(slider);
   return group;
@@ -141,6 +145,8 @@ export function createSelect(
     } else if (param === 'filterType') {
       synth.setConfig({ filterType: select.value as FilterType });
     }
+    // Return focus to document after selection
+    select.blur();
   };
 
   group.appendChild(labelEl);

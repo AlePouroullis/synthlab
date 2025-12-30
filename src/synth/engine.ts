@@ -15,6 +15,13 @@ export class SynthEngine {
   private filter: BiquadFilterNode | null = null;
   private analyser: AnalyserNode | null = null;
 
+  // Reverb nodes
+  private reverbDry: GainNode | null = null;
+  private reverbWet: GainNode | null = null;
+  private reverbDelays: DelayNode[] = [];
+  private reverbFeedbacks: GainNode[] = [];
+  private reverbDampingFilters: BiquadFilterNode[] = [];
+
   // Active voices (for polyphony)
   private activeVoices: Map<number, { oscillator: OscillatorNode; gain: GainNode }> = new Map();
 
@@ -44,9 +51,60 @@ export class SynthEngine {
     this.analyser = this.audioContext.createAnalyser();
     this.analyser.fftSize = 2048;
 
-    // Connect: filter → masterGain → analyser → speakers
+    // Reverb: simple algorithmic reverb using delay lines
+    this.reverbDry = this.audioContext.createGain();
+    this.reverbWet = this.audioContext.createGain();
+    this.reverbDry.gain.value = 1 - this.config.reverbMix;
+    this.reverbWet.gain.value = this.config.reverbMix;
+
+    // Create multiple delay lines with different times for diffusion
+    const delayTimes = [0.029, 0.037, 0.043, 0.053]; // Prime-ish numbers for less resonance
+    const feedbackGain = 0.3 + this.config.reverbDecay * 0.65; // Map 0-1 to 0.3-0.95
+    const dampingFreq = 20000 - this.config.reverbDamping * 18000; // Map 0-1 to 20kHz-2kHz
+
+    const reverbMix = this.audioContext.createGain();
+    reverbMix.gain.value = 0.25; // Scale down the combined delays
+
+    for (const time of delayTimes) {
+      const delay = this.audioContext.createDelay(1);
+      delay.delayTime.value = time;
+
+      const feedback = this.audioContext.createGain();
+      feedback.gain.value = feedbackGain;
+
+      // Damping filter in feedback loop (lowpass to darken tail)
+      const damping = this.audioContext.createBiquadFilter();
+      damping.type = 'lowpass';
+      damping.frequency.value = dampingFreq;
+      damping.Q.value = 0.5;
+
+      // Feedback loop: delay → damping → feedback → delay
+      delay.connect(damping);
+      damping.connect(feedback);
+      feedback.connect(delay);
+
+      // Also send to output
+      delay.connect(reverbMix);
+
+      this.reverbDelays.push(delay);
+      this.reverbFeedbacks.push(feedback);
+      this.reverbDampingFilters.push(damping);
+    }
+
+    // Connect: filter → masterGain → [dry path + wet path] → analyser → speakers
     this.filter.connect(this.masterGain);
-    this.masterGain.connect(this.analyser);
+
+    // Dry path
+    this.masterGain.connect(this.reverbDry);
+    this.reverbDry.connect(this.analyser);
+
+    // Wet path (through reverb)
+    for (const delay of this.reverbDelays) {
+      this.masterGain.connect(delay);
+    }
+    reverbMix.connect(this.reverbWet);
+    this.reverbWet.connect(this.analyser);
+
     this.analyser.connect(this.audioContext.destination);
 
     console.log('Synth engine initialized!');
@@ -129,6 +187,25 @@ export class SynthEngine {
       this.filter.type = this.config.filterType;
       this.filter.frequency.value = this.config.filterCutoff;
       this.filter.Q.value = this.config.filterResonance;
+    }
+
+    if (this.reverbDry && this.reverbWet && config.reverbMix !== undefined) {
+      this.reverbDry.gain.value = 1 - this.config.reverbMix;
+      this.reverbWet.gain.value = this.config.reverbMix;
+    }
+
+    if (config.reverbDecay !== undefined) {
+      const feedbackGain = 0.3 + this.config.reverbDecay * 0.65;
+      for (const fb of this.reverbFeedbacks) {
+        fb.gain.value = feedbackGain;
+      }
+    }
+
+    if (config.reverbDamping !== undefined) {
+      const dampingFreq = 20000 - this.config.reverbDamping * 18000;
+      for (const df of this.reverbDampingFilters) {
+        df.frequency.value = dampingFreq;
+      }
     }
 
     if (config.envelope) {

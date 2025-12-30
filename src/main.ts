@@ -202,6 +202,18 @@ function buildUI(): void {
     createSlider(synth, 'Release', 'release', 0.001, 3, DEFAULT_CONFIG.envelope.release, 's')
   );
 
+  // Reverb panel
+  const reverbPanel = createPanel('Reverb');
+  reverbPanel.appendChild(
+    createSlider(synth, 'Mix', 'reverbMix', 0, 1, DEFAULT_CONFIG.reverbMix, '')
+  );
+  reverbPanel.appendChild(
+    createSlider(synth, 'Decay', 'reverbDecay', 0, 1, DEFAULT_CONFIG.reverbDecay, '')
+  );
+  reverbPanel.appendChild(
+    createSlider(synth, 'Damping', 'reverbDamping', 0, 1, DEFAULT_CONFIG.reverbDamping, '')
+  );
+
   // Master panel
   const masterPanel = createPanel('Master');
   masterPanel.appendChild(createSlider(synth, 'Volume', 'gain', 0, 1, DEFAULT_CONFIG.gain, ''));
@@ -222,6 +234,7 @@ function buildUI(): void {
   controlsContainer.appendChild(oscPanel);
   controlsContainer.appendChild(filterPanel);
   controlsContainer.appendChild(envPanel);
+  controlsContainer.appendChild(reverbPanel);
   controlsContainer.appendChild(masterPanel);
 
   // Keyboard
