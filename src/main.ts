@@ -6,7 +6,7 @@
 
 import { SynthEngine, DEFAULT_CONFIG } from './synth';
 import { createPanel, createSlider, createSelect } from './ui/controls';
-import { createKeyboard } from './ui/keyboard';
+import { createKeyboard, isKeyboardInputEnabled, setKeyboardInputEnabled } from './ui/keyboard';
 import { WaveformVisualizer } from './visualizers/waveform';
 import { WebSocketClient } from './websocket-client';
 import { ChatClient, createChatPanel } from './chat';
@@ -84,11 +84,28 @@ setChatVisible(initiallyVisible);
 // Toggle button click
 chatToggle?.addEventListener('click', toggleChat);
 
-// Keyboard shortcut: Cmd+/ (Mac) or Ctrl+/ (Windows/Linux)
+// Keyboard shortcuts
 document.addEventListener('keydown', (e) => {
+  // Cmd+/ or Ctrl+/ - toggle chat panel
   if ((e.metaKey || e.ctrlKey) && e.key === '/') {
     e.preventDefault();
     toggleChat();
+  }
+
+  // M - toggle computer keyboard input (like Ableton)
+  if (e.key.toLowerCase() === 'm' && !e.metaKey && !e.ctrlKey && !e.altKey) {
+    // Skip if typing in an input field
+    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+      return;
+    }
+    e.preventDefault();
+    const newState = !isKeyboardInputEnabled();
+    setKeyboardInputEnabled(newState);
+    // Update the checkbox UI
+    const checkbox = document.querySelector(
+      '.keyboard-toggle input[type="checkbox"]'
+    ) as HTMLInputElement;
+    if (checkbox) checkbox.checked = newState;
   }
 });
 

@@ -161,9 +161,12 @@ h1 {
 
 /* MCP status indicator */
 .mcp-status {
-  padding: 5px 10px;
-  border-radius: 4px;
-  font-size: 0.7rem;
+  display: flex;
+  align-items: center;
+  height: 34px;
+  padding: 0 10px;
+  border-radius: 6px;
+  font-size: 0.65rem;
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -188,9 +191,14 @@ h1 {
 .icon-btn,
 .chat-toggle {
   position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
   background: transparent;
   border: 1px solid var(--border);
-  padding: 8px;
+  padding: 0;
   border-radius: 6px;
   color: var(--text-secondary);
   cursor: pointer;
@@ -447,14 +455,96 @@ select:focus {
 }
 
 /* Keyboard styling */
+.keyboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.keyboard-header h3 {
+  margin: 0;
+}
+
+.keyboard-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
+}
+
+.keyboard-toggle input[type='checkbox'] {
+  width: 14px;
+  height: 14px;
+  accent-color: var(--text-primary);
+  cursor: pointer;
+}
+
+.keyboard-toggle span {
+  transition: color 0.15s;
+}
+
+.keyboard-toggle:hover span {
+  color: var(--text-secondary);
+}
+
+.keyboard-toggle {
+  position: relative;
+}
+
+.keyboard-toggle .tooltip {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 6px;
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s;
+  border: 1px solid var(--border);
+  z-index: 10;
+}
+
+.keyboard-toggle:hover .tooltip {
+  opacity: 1;
+}
+
+/* Key labels */
+.key-label {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.6rem;
+  font-weight: 500;
+  color: #999;
+  pointer-events: none;
+  text-transform: uppercase;
+}
+
+.key.black .key-label {
+  bottom: 6px;
+  color: #666;
+}
+
 .keyboard {
+  position: relative;
   display: flex;
   gap: 2px;
   margin-top: 16px;
 }
 
 .key {
-  width: 44px;
+  position: relative;
+  width: 40px;
   height: 140px;
   background: var(--key-white);
   border: 1px solid var(--key-border);
@@ -479,10 +569,10 @@ select:focus {
 }
 
 .key.black {
-  width: 28px;
+  position: absolute;
+  width: 26px;
   height: 90px;
   background: var(--key-black);
-  margin: 0 -15px;
   z-index: 1;
   border-radius: 0 0 3px 3px;
   border: none;
