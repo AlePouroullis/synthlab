@@ -36,8 +36,11 @@ export function createKeyboard(synth: SynthEngine): HTMLDivElement {
     key.dataset.note = String(midiNote);
 
     // Mouse events
-    key.onmousedown = () => {
-      if (!synth.isInitialized()) return;
+    key.onmousedown = async () => {
+      // Lazy audio initialization
+      if ((window as any).ensureAudio) {
+        await (window as any).ensureAudio();
+      }
       synth.noteOn(midiToFrequency(midiNote), midiNote);
       key.classList.add('pressed');
     };
@@ -92,10 +95,13 @@ function setupKeyboardInput(synth: SynthEngine): void {
 
   const pressedKeys = new Set<string>();
 
-  document.addEventListener('keydown', (e) => {
-    if (!synth.isInitialized()) return;
+  document.addEventListener('keydown', async (e) => {
     const key = e.key.toLowerCase();
     if (keyMap[key] && !pressedKeys.has(key)) {
+      // Lazy audio initialization
+      if ((window as any).ensureAudio) {
+        await (window as any).ensureAudio();
+      }
       pressedKeys.add(key);
       const midiNote = keyMap[key];
       synth.noteOn(midiToFrequency(midiNote), midiNote);

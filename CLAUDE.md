@@ -115,3 +115,57 @@ npm run dev
 - Modular structure (one concern per file)
 - Web Audio nodes created on-demand (oscillators are short-lived)
 - MCP server uses stdio transport (spawned by Claude Code)
+
+## Style Guide
+
+### Design Philosophy
+
+- **Minimal and refined** — Clean, understated, professional aesthetic
+- **Not "spacy" or neon** — Avoid sci-fi vibes, gaming aesthetics, bright accent colors
+- **Warm neutrals** — Off-white tones, not pure white; warm grays, not blue-tinted
+
+### Theming
+
+The app supports dark and light modes via CSS variables on `[data-theme]`.
+
+**Always use CSS variables for colors:**
+
+```css
+/* Backgrounds */
+--bg-base       /* Deepest background */
+--bg-surface    /* Cards, panels */
+--bg-elevated   /* Hover states, inputs */
+
+/* Text */
+--text-primary   /* Main content */
+--text-secondary /* Labels, secondary info */
+--text-muted     /* Placeholders, disabled */
+
+/* Borders */
+--border         /* Visible borders */
+--border-subtle  /* Subtle dividers */
+
+/* Accent */
+--accent         /* Primary interactive elements */
+--accent-hover   /* Hover state */
+--accent-muted   /* Pressed/active state */
+
+/* Semantic */
+--success, --error, --warning
+```
+
+**For canvas/visualizers:** Read CSS variables at runtime via `getComputedStyle()` to support theme switching.
+
+### Typography
+
+- Font: Space Grotesk (via `--font-main`)
+- Section headers: `0.7rem`, uppercase, `letter-spacing: 0.1em`
+- Body: `0.85rem`
+- Use `font-weight: 500` for medium emphasis, `400` for regular
+
+### Components
+
+- Border radius: `6px` for buttons/inputs, `8px` for panels
+- Transitions: `0.15s ease` for interactions
+- Avoid drop shadows — use subtle borders instead
+- Buttons: filled with `--text-primary` (inverts on theme)

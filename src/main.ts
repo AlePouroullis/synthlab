@@ -30,6 +30,24 @@ const chatContainer = document.getElementById('chat-container');
 // Visualizer instance
 const waveformViz = new WaveformVisualizer(visualizerCanvas);
 
+/**
+ * Ensure audio is initialized (lazy initialization on first interaction).
+ */
+async function ensureAudio(): Promise<void> {
+  if (synth.isInitialized()) return;
+
+  await synth.initialize();
+
+  // Start visualization
+  const analyser = synth.getAnalyser();
+  if (analyser) {
+    waveformViz.start(analyser);
+  }
+}
+
+// Expose for keyboard and other modules
+(window as any).ensureAudio = ensureAudio;
+
 // Add chat panel if container exists
 if (chatContainer) {
   chatContainer.appendChild(createChatPanel(chatClient));
@@ -73,6 +91,22 @@ document.addEventListener('keydown', (e) => {
     toggleChat();
   }
 });
+
+// Theme toggle
+const themeToggle = document.getElementById('theme-toggle');
+const THEME_KEY = 'synthlab-theme';
+
+function setTheme(theme: 'dark' | 'light'): void {
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem(THEME_KEY, theme);
+}
+
+function toggleTheme(): void {
+  const current = document.documentElement.getAttribute('data-theme');
+  setTheme(current === 'dark' ? 'light' : 'dark');
+}
+
+themeToggle?.addEventListener('click', toggleTheme);
 
 /**
  * Build the UI.
@@ -155,28 +189,15 @@ function buildUI(): void {
   const masterPanel = createPanel('Master');
   masterPanel.appendChild(createSlider(synth, 'Volume', 'gain', 0, 1, DEFAULT_CONFIG.gain, ''));
 
-  // Start button
-  const startBtn = document.createElement('button');
-  startBtn.textContent = 'Start Audio';
-  startBtn.id = 'start-btn';
-  startBtn.onclick = async () => {
-    await synth.initialize();
-    startBtn.textContent = 'Audio Ready!';
-    startBtn.disabled = true;
-
-    // Start visualization
-    const analyser = synth.getAnalyser();
-    if (analyser) {
-      waveformViz.start(analyser);
-    }
-  };
-  masterPanel.appendChild(startBtn);
-
-  // Panic button
+  // Panic button (icon only with tooltip)
   const panicBtn = document.createElement('button');
-  panicBtn.textContent = 'Panic (Stop All)';
-  panicBtn.style.background = '#ff6b6b';
-  panicBtn.style.marginLeft = '10px';
+  panicBtn.className = 'panic-btn';
+  panicBtn.innerHTML = `
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <rect x="3" y="3" width="18" height="18" rx="2"/>
+    </svg>
+    <span class="tooltip">Panic — stop all notes</span>
+  `;
   panicBtn.onclick = () => synth.panic();
   masterPanel.appendChild(panicBtn);
 
@@ -193,5 +214,5 @@ function buildUI(): void {
 // Initialize
 buildUI();
 
-console.log('Web Synth loaded! Click "Start Audio" to begin.');
+console.log('SynthLab loaded! Press a key or click the keyboard to start.');
 console.log('Tip: Access the synth in console via `window.synth`');

@@ -10,15 +10,22 @@ export class WaveformVisualizer {
   private analyser: AnalyserNode | null = null;
   private dataArray: Uint8Array | null = null;
   private animationId: number | null = null;
-
-  // Style options
-  private backgroundColor = '#0d0d1a';
-  private lineColor = '#00d4ff';
   private lineWidth = 2;
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d')!;
+  }
+
+  /**
+   * Get colors from CSS variables for theme support.
+   */
+  private getColors(): { background: string; line: string } {
+    const style = getComputedStyle(document.documentElement);
+    return {
+      background: style.getPropertyValue('--bg-surface').trim() || '#171717',
+      line: style.getPropertyValue('--text-secondary').trim() || '#a0a0a0',
+    };
   }
 
   /**
@@ -41,14 +48,6 @@ export class WaveformVisualizer {
   }
 
   /**
-   * Set custom colors.
-   */
-  setColors(background: string, line: string): void {
-    this.backgroundColor = background;
-    this.lineColor = line;
-  }
-
-  /**
    * Main draw loop.
    */
   private draw = (): void => {
@@ -60,14 +59,15 @@ export class WaveformVisualizer {
     this.analyser.getByteTimeDomainData(this.dataArray as Uint8Array<ArrayBuffer>);
 
     const { width, height } = this.canvas;
+    const colors = this.getColors();
 
     // Clear canvas
-    this.ctx.fillStyle = this.backgroundColor;
+    this.ctx.fillStyle = colors.background;
     this.ctx.fillRect(0, 0, width, height);
 
     // Draw waveform
     this.ctx.lineWidth = this.lineWidth;
-    this.ctx.strokeStyle = this.lineColor;
+    this.ctx.strokeStyle = colors.line;
     this.ctx.beginPath();
 
     const bufferLength = this.dataArray.length;
