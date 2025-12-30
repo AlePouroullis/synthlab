@@ -63,7 +63,7 @@ h1 {
   color: #aaa;
 }
 
-.slider-group input[type="range"] {
+.slider-group input[type='range'] {
   width: 100%;
   height: 6px;
   border-radius: 3px;
@@ -72,7 +72,7 @@ h1 {
   -webkit-appearance: none;
 }
 
-.slider-group input[type="range"]::-webkit-slider-thumb {
+.slider-group input[type='range']::-webkit-slider-thumb {
   -webkit-appearance: none;
   width: 18px;
   height: 18px;
@@ -148,7 +148,8 @@ select {
   background: #ddd;
 }
 
-.key:active, .key.pressed {
+.key:active,
+.key.pressed {
   background: #00d4ff;
 }
 
@@ -165,6 +166,7 @@ select {
   background: #333;
 }
 
-.key.black:active, .key.black.pressed {
+.key.black:active,
+.key.black.pressed {
   background: #0088aa;
 }

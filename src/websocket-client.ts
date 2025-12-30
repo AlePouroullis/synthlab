@@ -92,7 +92,11 @@ export class WebSocketClient {
     }
   }
 
-  private async handleMessage(message: { id: string; type: string; payload: any }): Promise<{ result?: any; error?: string }> {
+  private async handleMessage(message: {
+    id: string;
+    type: string;
+    payload: any;
+  }): Promise<{ result?: any; error?: string }> {
     const { type, payload } = message;
 
     // Ensure synth is initialized

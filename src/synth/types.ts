@@ -12,18 +12,18 @@ export type FilterType = 'lowpass' | 'highpass' | 'bandpass';
 
 // ADSR envelope parameters (in seconds)
 export interface ADSREnvelope {
-  attack: number;   // Time to reach peak volume
-  decay: number;    // Time to fall to sustain level
-  sustain: number;  // Volume level while key is held (0-1)
-  release: number;  // Time to fade out after key release
+  attack: number; // Time to reach peak volume
+  decay: number; // Time to fall to sustain level
+  sustain: number; // Volume level while key is held (0-1)
+  release: number; // Time to fade out after key release
 }
 
 // Complete synth configuration
 export interface SynthConfig {
   waveform: WaveformType;
-  gain: number;           // Master volume (0-1)
+  gain: number; // Master volume (0-1)
   filterType: FilterType;
-  filterCutoff: number;   // Frequency in Hz (20-20000)
+  filterCutoff: number; // Frequency in Hz (20-20000)
   filterResonance: number; // Q factor (0.1-30)
   envelope: ADSREnvelope;
 }
@@ -39,8 +39,8 @@ export const DEFAULT_CONFIG: SynthConfig = {
     attack: 0.01,
     decay: 0.1,
     sustain: 0.7,
-    release: 0.3
-  }
+    release: 0.3,
+  },
 };
 
 // Note names for building a keyboard

@@ -33,29 +33,74 @@ function buildUI(): void {
 
   // Oscillator panel
   const oscPanel = createPanel('Oscillator');
-  oscPanel.appendChild(createSelect(synth, 'Waveform', 'waveform', [
-    { value: 'sine', label: 'Sine (pure tone)' },
-    { value: 'triangle', label: 'Triangle (mellow)' },
-    { value: 'sawtooth', label: 'Sawtooth (bright)' },
-    { value: 'square', label: 'Square (hollow)' }
-  ], DEFAULT_CONFIG.waveform));
+  oscPanel.appendChild(
+    createSelect(
+      synth,
+      'Waveform',
+      'waveform',
+      [
+        { value: 'sine', label: 'Sine (pure tone)' },
+        { value: 'triangle', label: 'Triangle (mellow)' },
+        { value: 'sawtooth', label: 'Sawtooth (bright)' },
+        { value: 'square', label: 'Square (hollow)' },
+      ],
+      DEFAULT_CONFIG.waveform
+    )
+  );
 
   // Filter panel
   const filterPanel = createPanel('Filter');
-  filterPanel.appendChild(createSelect(synth, 'Type', 'filterType', [
-    { value: 'lowpass', label: 'Lowpass' },
-    { value: 'highpass', label: 'Highpass' },
-    { value: 'bandpass', label: 'Bandpass' }
-  ], DEFAULT_CONFIG.filterType));
-  filterPanel.appendChild(createSlider(synth, 'Cutoff', 'filterCutoff', 20, 20000, DEFAULT_CONFIG.filterCutoff, 'Hz', true));
-  filterPanel.appendChild(createSlider(synth, 'Resonance', 'filterResonance', 0.1, 30, DEFAULT_CONFIG.filterResonance, 'Q'));
+  filterPanel.appendChild(
+    createSelect(
+      synth,
+      'Type',
+      'filterType',
+      [
+        { value: 'lowpass', label: 'Lowpass' },
+        { value: 'highpass', label: 'Highpass' },
+        { value: 'bandpass', label: 'Bandpass' },
+      ],
+      DEFAULT_CONFIG.filterType
+    )
+  );
+  filterPanel.appendChild(
+    createSlider(
+      synth,
+      'Cutoff',
+      'filterCutoff',
+      20,
+      20000,
+      DEFAULT_CONFIG.filterCutoff,
+      'Hz',
+      true
+    )
+  );
+  filterPanel.appendChild(
+    createSlider(
+      synth,
+      'Resonance',
+      'filterResonance',
+      0.1,
+      30,
+      DEFAULT_CONFIG.filterResonance,
+      'Q'
+    )
+  );
 
   // Envelope panel
   const envPanel = createPanel('Envelope (ADSR)');
-  envPanel.appendChild(createSlider(synth, 'Attack', 'attack', 0.001, 2, DEFAULT_CONFIG.envelope.attack, 's'));
-  envPanel.appendChild(createSlider(synth, 'Decay', 'decay', 0.001, 2, DEFAULT_CONFIG.envelope.decay, 's'));
-  envPanel.appendChild(createSlider(synth, 'Sustain', 'sustain', 0, 1, DEFAULT_CONFIG.envelope.sustain, ''));
-  envPanel.appendChild(createSlider(synth, 'Release', 'release', 0.001, 3, DEFAULT_CONFIG.envelope.release, 's'));
+  envPanel.appendChild(
+    createSlider(synth, 'Attack', 'attack', 0.001, 2, DEFAULT_CONFIG.envelope.attack, 's')
+  );
+  envPanel.appendChild(
+    createSlider(synth, 'Decay', 'decay', 0.001, 2, DEFAULT_CONFIG.envelope.decay, 's')
+  );
+  envPanel.appendChild(
+    createSlider(synth, 'Sustain', 'sustain', 0, 1, DEFAULT_CONFIG.envelope.sustain, '')
+  );
+  envPanel.appendChild(
+    createSlider(synth, 'Release', 'release', 0.001, 3, DEFAULT_CONFIG.envelope.release, 's')
+  );
 
   // Master panel
   const masterPanel = createPanel('Master');

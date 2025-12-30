@@ -1,10 +1,11 @@
-# Web Synthesizer
+# SynthLab
 
 A browser-based synthesizer controllable via MCP (Model Context Protocol), allowing Claude to play music programmatically.
 
 ## What This Is
 
 A pedagogical project exploring:
+
 1. Web Audio API fundamentals (oscillators, filters, envelopes)
 2. MCP for LLM-to-application communication
 3. Real-time audio visualization with Canvas
@@ -77,17 +78,20 @@ npm run dev
 ## Key Concepts
 
 ### Web Audio Graph
+
 ```
 [Oscillator] → [Gain (ADSR envelope)] → [Filter] → [Master Gain] → [Analyser] → [Speakers]
 ```
 
 ### ADSR Envelope
+
 - **Attack**: Time to reach peak volume
 - **Decay**: Time to fall to sustain level
 - **Sustain**: Volume while note is held
 - **Release**: Time to fade after note release
 
 ### Note Naming
+
 - Use sharps, not flats: `C#4` not `Db4`
 - Octave 4 is middle C: `C4` = MIDI 60 = 261.63 Hz
 

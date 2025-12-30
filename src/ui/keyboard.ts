@@ -60,7 +60,7 @@ export function createKeyboard(synth: SynthEngine): HTMLDivElement {
   }
 
   // Add white keys first (z-index layering)
-  whiteKeys.forEach(k => keyboard.appendChild(k));
+  whiteKeys.forEach((k) => keyboard.appendChild(k));
 
   container.appendChild(keyboard);
 
@@ -75,8 +75,19 @@ export function createKeyboard(synth: SynthEngine): HTMLDivElement {
  */
 function setupKeyboardInput(synth: SynthEngine): void {
   const keyMap: Record<string, number> = {
-    'z': 60, 's': 61, 'x': 62, 'd': 63, 'c': 64,
-    'v': 65, 'g': 66, 'b': 67, 'h': 68, 'n': 69, 'j': 70, 'm': 71, ',': 72
+    z: 60,
+    s: 61,
+    x: 62,
+    d: 63,
+    c: 64,
+    v: 65,
+    g: 66,
+    b: 67,
+    h: 68,
+    n: 69,
+    j: 70,
+    m: 71,
+    ',': 72,
   };
 
   const pressedKeys = new Set<string>();

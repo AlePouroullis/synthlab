@@ -13,13 +13,10 @@
  * - panic: Stop all notes
  */
 
-import { Server } from "@modelcontextprotocol/sdk/server/index.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import {
-  CallToolRequestSchema,
-  ListToolsRequestSchema,
-} from "@modelcontextprotocol/sdk/types.js";
-import { WebSocketServer, WebSocket } from "ws";
+import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
+import { WebSocketServer, WebSocket } from 'ws';
 
 // WebSocket connection to the browser synth
 let browserConnection: WebSocket | null = null;
@@ -29,11 +26,11 @@ let requestId = 0;
 // Start WebSocket server for browser connection
 const wss = new WebSocketServer({ port: 8765 });
 
-wss.on("connection", (ws) => {
-  console.error("[MCP] Browser synth connected");
+wss.on('connection', (ws) => {
+  console.error('[MCP] Browser synth connected');
   browserConnection = ws;
 
-  ws.on("message", (data) => {
+  ws.on('message', (data) => {
     try {
       const message = JSON.parse(data.toString());
       if (message.id && pendingRequests.has(message.id)) {
@@ -42,22 +39,22 @@ wss.on("connection", (ws) => {
         resolve(message);
       }
     } catch (e) {
-      console.error("[MCP] Error parsing message:", e);
+      console.error('[MCP] Error parsing message:', e);
     }
   });
 
-  ws.on("close", () => {
-    console.error("[MCP] Browser synth disconnected");
+  ws.on('close', () => {
+    console.error('[MCP] Browser synth disconnected');
     browserConnection = null;
   });
 });
 
-console.error("[MCP] WebSocket server listening on ws://localhost:8765");
+console.error('[MCP] WebSocket server listening on ws://localhost:8765');
 
 // Send a command to the browser synth and wait for response
 async function sendCommand(type: string, payload: any = {}): Promise<any> {
   if (!browserConnection) {
-    throw new Error("Browser synth not connected. Open http://localhost:3000 in your browser.");
+    throw new Error('Browser synth not connected. Open http://localhost:3000 in your browser.');
   }
 
   const id = String(++requestId);
@@ -65,7 +62,7 @@ async function sendCommand(type: string, payload: any = {}): Promise<any> {
   return new Promise((resolve, reject) => {
     const timeout = setTimeout(() => {
       pendingRequests.delete(id);
-      reject(new Error("Request timed out"));
+      reject(new Error('Request timed out'));
     }, 5000);
 
     pendingRequests.set(id, (response) => {
@@ -84,9 +81,23 @@ async function sendCommand(type: string, payload: any = {}): Promise<any> {
 // Note name to MIDI number conversion
 function noteNameToMidi(noteName: string): number {
   const noteMap: Record<string, number> = {
-    'C': 0, 'C#': 1, 'Db': 1, 'D': 2, 'D#': 3, 'Eb': 3,
-    'E': 4, 'F': 5, 'F#': 6, 'Gb': 6, 'G': 7, 'G#': 8,
-    'Ab': 8, 'A': 9, 'A#': 10, 'Bb': 10, 'B': 11
+    C: 0,
+    'C#': 1,
+    Db: 1,
+    D: 2,
+    'D#': 3,
+    Eb: 3,
+    E: 4,
+    F: 5,
+    'F#': 6,
+    Gb: 6,
+    G: 7,
+    'G#': 8,
+    Ab: 8,
+    A: 9,
+    'A#': 10,
+    Bb: 10,
+    B: 11,
   };
 
   // Parse note name like "C4", "F#3", etc.
@@ -109,8 +120,8 @@ function noteNameToMidi(noteName: string): number {
 // Create MCP server
 const server = new Server(
   {
-    name: "web-synth",
-    version: "1.0.0",
+    name: 'web-synth',
+    version: '1.0.0',
   },
   {
     capabilities: {
@@ -124,170 +135,176 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
   return {
     tools: [
       {
-        name: "get_config",
-        description: "Get the current synth configuration including waveform, filter, envelope, and volume settings",
+        name: 'get_config',
+        description:
+          'Get the current synth configuration including waveform, filter, envelope, and volume settings',
         inputSchema: {
-          type: "object",
+          type: 'object',
           properties: {},
           required: [],
         },
       },
       {
-        name: "set_config",
-        description: "Update synth parameters. You can set any combination of: waveform (sine/square/sawtooth/triangle), gain (0-1), filterType (lowpass/highpass/bandpass), filterCutoff (20-20000 Hz), filterResonance (0.1-30), and envelope (attack/decay/sustain/release in seconds).",
+        name: 'set_config',
+        description:
+          'Update synth parameters. You can set any combination of: waveform (sine/square/sawtooth/triangle), gain (0-1), filterType (lowpass/highpass/bandpass), filterCutoff (20-20000 Hz), filterResonance (0.1-30), and envelope (attack/decay/sustain/release in seconds).',
         inputSchema: {
-          type: "object",
+          type: 'object',
           properties: {
             waveform: {
-              type: "string",
-              enum: ["sine", "square", "sawtooth", "triangle"],
-              description: "Oscillator waveform type",
+              type: 'string',
+              enum: ['sine', 'square', 'sawtooth', 'triangle'],
+              description: 'Oscillator waveform type',
             },
             gain: {
-              type: "number",
+              type: 'number',
               minimum: 0,
               maximum: 1,
-              description: "Master volume (0-1)",
+              description: 'Master volume (0-1)',
             },
             filterType: {
-              type: "string",
-              enum: ["lowpass", "highpass", "bandpass"],
-              description: "Filter type",
+              type: 'string',
+              enum: ['lowpass', 'highpass', 'bandpass'],
+              description: 'Filter type',
             },
             filterCutoff: {
-              type: "number",
+              type: 'number',
               minimum: 20,
               maximum: 20000,
-              description: "Filter cutoff frequency in Hz",
+              description: 'Filter cutoff frequency in Hz',
             },
             filterResonance: {
-              type: "number",
+              type: 'number',
               minimum: 0.1,
               maximum: 30,
-              description: "Filter resonance (Q factor)",
+              description: 'Filter resonance (Q factor)',
             },
             attack: {
-              type: "number",
+              type: 'number',
               minimum: 0.001,
               maximum: 5,
-              description: "Envelope attack time in seconds",
+              description: 'Envelope attack time in seconds',
             },
             decay: {
-              type: "number",
+              type: 'number',
               minimum: 0.001,
               maximum: 5,
-              description: "Envelope decay time in seconds",
+              description: 'Envelope decay time in seconds',
             },
             sustain: {
-              type: "number",
+              type: 'number',
               minimum: 0,
               maximum: 1,
-              description: "Envelope sustain level (0-1)",
+              description: 'Envelope sustain level (0-1)',
             },
             release: {
-              type: "number",
+              type: 'number',
               minimum: 0.001,
               maximum: 10,
-              description: "Envelope release time in seconds",
+              description: 'Envelope release time in seconds',
             },
           },
         },
       },
       {
-        name: "play_note",
-        description: "Play a musical note. Specify either a note name (e.g., 'C4', 'F#3', 'Bb2') or a MIDI note number (0-127). Optionally specify duration in seconds.",
+        name: 'play_note',
+        description:
+          "Play a musical note. Specify either a note name (e.g., 'C4', 'F#3', 'Bb2') or a MIDI note number (0-127). Optionally specify duration in seconds.",
         inputSchema: {
-          type: "object",
+          type: 'object',
           properties: {
             note: {
-              type: "string",
+              type: 'string',
               description: "Note name (e.g., 'C4', 'F#3') or MIDI number (e.g., '60')",
             },
             duration: {
-              type: "number",
+              type: 'number',
               minimum: 0.01,
               maximum: 10,
-              description: "Duration in seconds. If not specified, note plays until stop_note is called.",
+              description:
+                'Duration in seconds. If not specified, note plays until stop_note is called.',
             },
           },
-          required: ["note"],
+          required: ['note'],
         },
       },
       {
-        name: "play_sequence",
-        description: "Play a sequence of notes. Each note can have a name, duration, and gap before the next note.",
+        name: 'play_sequence',
+        description:
+          'Play a sequence of notes. Each note can have a name, duration, and gap before the next note.',
         inputSchema: {
-          type: "object",
+          type: 'object',
           properties: {
             notes: {
-              type: "array",
+              type: 'array',
               items: {
-                type: "object",
+                type: 'object',
                 properties: {
-                  note: { type: "string", description: "Note name or MIDI number" },
-                  duration: { type: "number", description: "Duration in seconds" },
-                  gap: { type: "number", description: "Gap after this note in seconds" },
+                  note: { type: 'string', description: 'Note name or MIDI number' },
+                  duration: { type: 'number', description: 'Duration in seconds' },
+                  gap: { type: 'number', description: 'Gap after this note in seconds' },
                 },
-                required: ["note"],
+                required: ['note'],
               },
-              description: "Array of notes to play",
+              description: 'Array of notes to play',
             },
           },
-          required: ["notes"],
+          required: ['notes'],
         },
       },
       {
-        name: "play_chord_sequence",
-        description: "Play a sequence of chords. Each chord contains multiple notes played simultaneously, with a duration and optional gap before the next chord. Great for progressions like I-IV-V-I.",
+        name: 'play_chord_sequence',
+        description:
+          'Play a sequence of chords. Each chord contains multiple notes played simultaneously, with a duration and optional gap before the next chord. Great for progressions like I-IV-V-I.',
         inputSchema: {
-          type: "object",
+          type: 'object',
           properties: {
             chords: {
-              type: "array",
+              type: 'array',
               items: {
-                type: "object",
+                type: 'object',
                 properties: {
                   notes: {
-                    type: "array",
-                    items: { type: "string" },
+                    type: 'array',
+                    items: { type: 'string' },
                     description: "Array of note names (e.g., ['C4', 'E4', 'G4'] for C major)",
                   },
                   duration: {
-                    type: "number",
-                    description: "How long to hold the chord in seconds",
+                    type: 'number',
+                    description: 'How long to hold the chord in seconds',
                   },
                   gap: {
-                    type: "number",
-                    description: "Gap after this chord before the next one (in seconds)",
+                    type: 'number',
+                    description: 'Gap after this chord before the next one (in seconds)',
                   },
                 },
-                required: ["notes"],
+                required: ['notes'],
               },
-              description: "Array of chords to play in sequence",
+              description: 'Array of chords to play in sequence',
             },
           },
-          required: ["chords"],
+          required: ['chords'],
         },
       },
       {
-        name: "stop_note",
-        description: "Stop a specific note that is currently playing",
+        name: 'stop_note',
+        description: 'Stop a specific note that is currently playing',
         inputSchema: {
-          type: "object",
+          type: 'object',
           properties: {
             note: {
-              type: "string",
-              description: "Note name or MIDI number to stop",
+              type: 'string',
+              description: 'Note name or MIDI number to stop',
             },
           },
-          required: ["note"],
+          required: ['note'],
         },
       },
       {
-        name: "panic",
-        description: "Stop all currently playing notes immediately",
+        name: 'panic',
+        description: 'Stop all currently playing notes immediately',
         inputSchema: {
-          type: "object",
+          type: 'object',
           properties: {},
           required: [],
         },
@@ -302,20 +319,20 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
   try {
     switch (name) {
-      case "get_config": {
-        const config = await sendCommand("get_config");
+      case 'get_config': {
+        const config = await sendCommand('get_config');
         return {
-          content: [{ type: "text", text: JSON.stringify(config, null, 2) }],
+          content: [{ type: 'text', text: JSON.stringify(config, null, 2) }],
         };
       }
 
-      case "set_config": {
+      case 'set_config': {
         // Build config object, handling envelope separately
         const config: any = {};
         const envelope: any = {};
 
         for (const [key, value] of Object.entries(args || {})) {
-          if (["attack", "decay", "sustain", "release"].includes(key)) {
+          if (['attack', 'decay', 'sustain', 'release'].includes(key)) {
             envelope[key] = value;
           } else {
             config[key] = value;
@@ -326,14 +343,16 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           config.envelope = envelope;
         }
 
-        await sendCommand("set_config", config);
-        const newConfig = await sendCommand("get_config");
+        await sendCommand('set_config', config);
+        const newConfig = await sendCommand('get_config');
         return {
-          content: [{ type: "text", text: `Configuration updated:\n${JSON.stringify(newConfig, null, 2)}` }],
+          content: [
+            { type: 'text', text: `Configuration updated:\n${JSON.stringify(newConfig, null, 2)}` },
+          ],
         };
       }
 
-      case "play_note": {
+      case 'play_note': {
         const noteArg = (args as any).note;
         const duration = (args as any).duration;
 
@@ -345,16 +364,16 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           midiNote = noteNameToMidi(noteArg);
         }
 
-        await sendCommand("play_note", { midiNote, duration });
+        await sendCommand('play_note', { midiNote, duration });
 
         const message = duration
           ? `Playing ${noteArg} (MIDI ${midiNote}) for ${duration}s`
           : `Playing ${noteArg} (MIDI ${midiNote})`;
 
-        return { content: [{ type: "text", text: message }] };
+        return { content: [{ type: 'text', text: message }] };
       }
 
-      case "play_sequence": {
+      case 'play_sequence': {
         const notes = (args as any).notes || [];
         const parsedNotes = notes.map((n: any) => ({
           midiNote: /^\d+$/.test(n.note) ? parseInt(n.note, 10) : noteNameToMidi(n.note),
@@ -362,14 +381,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           gap: n.gap || 0,
         }));
 
-        await sendCommand("play_sequence", { notes: parsedNotes });
+        await sendCommand('play_sequence', { notes: parsedNotes });
 
         return {
-          content: [{ type: "text", text: `Playing sequence of ${notes.length} notes` }],
+          content: [{ type: 'text', text: `Playing sequence of ${notes.length} notes` }],
         };
       }
 
-      case "play_chord_sequence": {
+      case 'play_chord_sequence': {
         const chords = (args as any).chords || [];
         const parsedChords = chords.map((chord: any) => ({
           midiNotes: chord.notes.map((n: string) =>
@@ -379,15 +398,15 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           gap: chord.gap || 0,
         }));
 
-        await sendCommand("play_chord_sequence", { chords: parsedChords });
+        await sendCommand('play_chord_sequence', { chords: parsedChords });
 
-        const chordNames = chords.map((c: any) => c.notes.join("-")).join(" → ");
+        const chordNames = chords.map((c: any) => c.notes.join('-')).join(' → ');
         return {
-          content: [{ type: "text", text: `Playing chord sequence: ${chordNames}` }],
+          content: [{ type: 'text', text: `Playing chord sequence: ${chordNames}` }],
         };
       }
 
-      case "stop_note": {
+      case 'stop_note': {
         const noteArg = (args as any).note;
         let midiNote: number;
         if (/^\d+$/.test(noteArg)) {
@@ -396,13 +415,13 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           midiNote = noteNameToMidi(noteArg);
         }
 
-        await sendCommand("stop_note", { midiNote });
-        return { content: [{ type: "text", text: `Stopped note ${noteArg}` }] };
+        await sendCommand('stop_note', { midiNote });
+        return { content: [{ type: 'text', text: `Stopped note ${noteArg}` }] };
       }
 
-      case "panic": {
-        await sendCommand("panic");
-        return { content: [{ type: "text", text: "All notes stopped" }] };
+      case 'panic': {
+        await sendCommand('panic');
+        return { content: [{ type: 'text', text: 'All notes stopped' }] };
       }
 
       default:
@@ -411,7 +430,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     return {
-      content: [{ type: "text", text: `Error: ${message}` }],
+      content: [{ type: 'text', text: `Error: ${message}` }],
       isError: true,
     };
   }
@@ -421,10 +440,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error("[MCP] Server started");
+  console.error('[MCP] Server started');
 }
 
 main().catch((error) => {
-  console.error("[MCP] Fatal error:", error);
+  console.error('[MCP] Fatal error:', error);
   process.exit(1);
 });
