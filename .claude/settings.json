@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__web-synth__get_config",
+      "mcp__web-synth__set_config",
+      "mcp__web-synth__play_note",
+      "mcp__web-synth__play_sequence",
+      "mcp__web-synth__play_chord_sequence",
+      "mcp__web-synth__stop_note",
+      "mcp__web-synth__panic"
+    ]
+  }
+}

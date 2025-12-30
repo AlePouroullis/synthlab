@@ -1,0 +1,170 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #1a1a2e;
+  color: #eee;
+  margin: 0;
+  padding: 20px;
+  min-height: 100vh;
+}
+
+#app {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+h1 {
+  margin: 0;
+  font-size: 2rem;
+  color: #00d4ff;
+}
+
+.intro {
+  color: #888;
+  margin-top: 4px;
+}
+
+#synth-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin: 30px 0;
+}
+
+/* Control panel styling */
+.control-panel {
+  background: #252540;
+  border-radius: 12px;
+  padding: 20px;
+  min-width: 200px;
+}
+
+.control-panel h3 {
+  margin: 0 0 15px 0;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #00d4ff;
+}
+
+/* Slider styling */
+.slider-group {
+  margin-bottom: 15px;
+}
+
+.slider-group label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  margin-bottom: 5px;
+  color: #aaa;
+}
+
+.slider-group input[type="range"] {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: #1a1a2e;
+  outline: none;
+  -webkit-appearance: none;
+}
+
+.slider-group input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #00d4ff;
+  cursor: pointer;
+}
+
+/* Button styling */
+button {
+  background: #00d4ff;
+  color: #1a1a2e;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+button:hover {
+  background: #00a8cc;
+  transform: translateY(-1px);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+button.active {
+  background: #ff6b6b;
+}
+
+/* Select styling */
+select {
+  background: #1a1a2e;
+  color: #eee;
+  border: 1px solid #444;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  width: 100%;
+  cursor: pointer;
+}
+
+/* Canvas styling */
+#visualizer {
+  background: #0d0d1a;
+  border-radius: 12px;
+  width: 100%;
+  height: 200px;
+}
+
+/* Keyboard styling */
+.keyboard {
+  display: flex;
+  gap: 2px;
+  margin-top: 20px;
+}
+
+.key {
+  width: 50px;
+  height: 150px;
+  background: white;
+  border: 1px solid #333;
+  border-radius: 0 0 6px 6px;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.key:hover {
+  background: #ddd;
+}
+
+.key:active, .key.pressed {
+  background: #00d4ff;
+}
+
+.key.black {
+  width: 35px;
+  height: 100px;
+  background: #222;
+  margin: 0 -18px;
+  z-index: 1;
+  border-radius: 0 0 4px 4px;
+}
+
+.key.black:hover {
+  background: #333;
+}
+
+.key.black:active, .key.black.pressed {
+  background: #0088aa;
+}

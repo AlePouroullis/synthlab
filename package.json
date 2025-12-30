@@ -1,0 +1,26 @@
+{
+  "name": "synthesizer",
+  "version": "1.0.0",
+  "description": "Web synthesizer with MCP control",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "mcp:build": "tsc -p mcp-server/tsconfig.json",
+    "mcp:start": "node mcp-server/dist/server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^25.0.1",
+    "@types/ws": "^8.18.1",
+    "typescript": "^5.9.3",
+    "vite": "^7.2.6"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.24.2",
+    "ws": "^8.18.3"
+  }
+}

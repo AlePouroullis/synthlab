@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "web-synth": {
+      "command": "node",
+      "args": ["mcp-server/dist/server.js"]
+    }
+  }
+}
