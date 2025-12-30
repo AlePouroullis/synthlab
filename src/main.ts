@@ -9,21 +9,31 @@ import { createPanel, createSlider, createSelect } from './ui/controls';
 import { createKeyboard } from './ui/keyboard';
 import { WaveformVisualizer } from './visualizers/waveform';
 import { WebSocketClient } from './websocket-client';
+import { ChatClient, createChatPanel } from './chat';
 
 // Create the synth engine
 const synth = new SynthEngine();
 (window as any).synth = synth; // Expose for debugging
 
-// Connect to MCP server
+// Connect to MCP server (optional, for Claude Code integration)
 const wsClient = new WebSocketClient(synth);
 wsClient.connect();
+
+// Chat client for embedded chat
+const chatClient = new ChatClient(synth);
 
 // DOM elements
 const controlsContainer = document.getElementById('synth-controls')!;
 const visualizerCanvas = document.getElementById('visualizer') as HTMLCanvasElement;
+const chatContainer = document.getElementById('chat-container');
 
 // Visualizer instance
 const waveformViz = new WaveformVisualizer(visualizerCanvas);
+
+// Add chat panel if container exists
+if (chatContainer) {
+  chatContainer.appendChild(createChatPanel(chatClient));
+}
 
 /**
  * Build the UI.
