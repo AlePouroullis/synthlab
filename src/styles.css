@@ -322,6 +322,13 @@ h1 {
   margin-bottom: 20px;
 }
 
+#adsr-visualizer {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  width: 100%;
+}
+
 /* Control panel styling */
 .control-panel {
   background: var(--bg-surface);
@@ -450,7 +457,7 @@ select:focus {
   border-color: var(--text-secondary);
 }
 
-/* Canvas styling */
+/* Waveform visualizer canvas styling */
 #visualizer {
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);

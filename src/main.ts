@@ -4,13 +4,15 @@
  * Application entry point. Wires everything together.
  */
 
-import { SynthEngine, DEFAULT_CONFIG } from './synth';
-import { createPanel, createSlider, createSelect } from './ui/controls';
+import { SynthEngine, DEFAULT_CONFIG, ADSREnvelope } from './synth';
+import { createPanel, createSlider, createSelect, formatValue } from './ui/controls';
 import { createKeyboard, isKeyboardInputEnabled, setKeyboardInputEnabled } from './ui/keyboard';
 import { createTooltip } from './ui/tooltip';
 import { WaveformVisualizer } from './visualizers/waveform';
 import { WebSocketClient } from './websocket-client';
 import { ChatClient, createChatPanel } from './chat';
+import { ADSRVisualizer } from './visualizers/adsr';
+import { Store } from './store';
 
 // Create the synth engine
 const synth = new SynthEngine();
@@ -26,10 +28,49 @@ const chatClient = new ChatClient(synth);
 // DOM elements
 const controlsContainer = document.getElementById('synth-controls')!;
 const visualizerCanvas = document.getElementById('visualizer') as HTMLCanvasElement;
+
 const chatContainer = document.getElementById('chat-container');
 
 // Visualizer instance
 const waveformViz = new WaveformVisualizer(visualizerCanvas);
+
+// ADSR envelope store (central state for two-way binding)
+const envelopeStore = new Store<ADSREnvelope>(DEFAULT_CONFIG.envelope);
+
+// Subscribe: when store changes, update synth + slider UI
+envelopeStore.subscribe((envelope) => {
+  // Update synth
+  synth.setConfig({ envelope });
+
+  // Update slider UI (sliders have IDs like "attack-slider", "attack-value")
+  const params = ['attack', 'decay', 'sustain', 'release'] as const;
+  const units: Record<string, string> = { attack: 's', decay: 's', sustain: '', release: 's' };
+
+  for (const param of params) {
+    const slider = document.getElementById(`${param}-slider`) as HTMLInputElement | null;
+    const valueSpan = document.getElementById(`${param}-value`) as HTMLElement | null;
+
+    if (slider && valueSpan) {
+      slider.value = String(envelope[param]);
+      valueSpan.textContent = formatValue(envelope[param], units[param]);
+    }
+  }
+});
+
+// ADSR visualizer instance
+const adsrVisualizerCanvas = document.createElement('canvas');
+adsrVisualizerCanvas.setAttribute('id', 'adsr-visualizer');
+const adsrViz = new ADSRVisualizer(adsrVisualizerCanvas);
+
+// Visualizer publishes to store on drag
+adsrViz.setConfig(envelopeStore.get(), (envelope) => {
+  envelopeStore.set(envelope);
+});
+
+// Also subscribe visualizer to store (for when sliders change)
+envelopeStore.subscribe((envelope) => {
+  adsrViz.setConfig(envelope);
+});
 
 /**
  * Ensure audio is initialized (lazy initialization on first interaction).
@@ -189,19 +230,63 @@ function buildUI(): void {
   );
 
   // Envelope panel
+  // Slider onChange publishes to store (store then updates visualizer)
+  const onEnvelopeChange = () => envelopeStore.set(synth.getConfig().envelope);
+
   const envPanel = createPanel('Envelope (ADSR)');
   envPanel.appendChild(
-    createSlider(synth, 'Attack', 'attack', 0.001, 2, DEFAULT_CONFIG.envelope.attack, 's')
+    createSlider(
+      synth,
+      'Attack',
+      'attack',
+      0.001,
+      2,
+      DEFAULT_CONFIG.envelope.attack,
+      's',
+      false,
+      onEnvelopeChange
+    )
   );
   envPanel.appendChild(
-    createSlider(synth, 'Decay', 'decay', 0.001, 2, DEFAULT_CONFIG.envelope.decay, 's')
+    createSlider(
+      synth,
+      'Decay',
+      'decay',
+      0.001,
+      2,
+      DEFAULT_CONFIG.envelope.decay,
+      's',
+      false,
+      onEnvelopeChange
+    )
   );
   envPanel.appendChild(
-    createSlider(synth, 'Sustain', 'sustain', 0, 1, DEFAULT_CONFIG.envelope.sustain, '')
+    createSlider(
+      synth,
+      'Sustain',
+      'sustain',
+      0,
+      1,
+      DEFAULT_CONFIG.envelope.sustain,
+      '',
+      false,
+      onEnvelopeChange
+    )
   );
   envPanel.appendChild(
-    createSlider(synth, 'Release', 'release', 0.001, 3, DEFAULT_CONFIG.envelope.release, 's')
+    createSlider(
+      synth,
+      'Release',
+      'release',
+      0.001,
+      3,
+      DEFAULT_CONFIG.envelope.release,
+      's',
+      false,
+      onEnvelopeChange
+    )
   );
+  envPanel.appendChild(adsrVisualizerCanvas);
 
   // Reverb panel
   const reverbPanel = createPanel('Reverb');

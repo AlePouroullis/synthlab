@@ -4,6 +4,8 @@
  * Displays the time-domain waveform of the audio output.
  */
 
+import { getThemeColors, ThemeVars } from '../theme';
+
 export class WaveformVisualizer {
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
@@ -21,10 +23,10 @@ export class WaveformVisualizer {
    * Get colors from CSS variables for theme support.
    */
   private getColors(): { background: string; line: string } {
-    const style = getComputedStyle(document.documentElement);
+    const theme = getThemeColors([ThemeVars.bgSurface, ThemeVars.textSecondary]);
     return {
-      background: style.getPropertyValue('--bg-surface').trim() || '#171717',
-      line: style.getPropertyValue('--text-secondary').trim() || '#a0a0a0',
+      background: theme['bg-surface'],
+      line: theme['text-secondary'],
     };
   }
 

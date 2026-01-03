@@ -4,7 +4,7 @@
  * Reusable UI components for synth parameters.
  */
 
-import { SynthConfig, WaveformType, FilterType } from '../synth/types';
+import { WaveformType, FilterType } from '../synth/types';
 import { SynthEngine } from '../synth/engine';
 
 /**
@@ -66,7 +66,8 @@ export function createSlider(
   max: number,
   value: number,
   unit: string,
-  logarithmic = false
+  logarithmic = false,
+  onChange?: () => void
 ): HTMLDivElement {
   const group = document.createElement('div');
   group.className = 'slider-group';
@@ -101,6 +102,7 @@ export function createSlider(
     } else {
       synth.setConfig({ [param]: newValue });
     }
+    onChange?.();
   };
 
   // Return focus to document after interaction so keyboard input works
