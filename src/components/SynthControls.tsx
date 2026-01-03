@@ -16,31 +16,14 @@ export function SynthControls({ synth }: Props) {
   // Track synth config as state for reactivity
   const [config, setConfig] = useState<SynthConfig>(synth.getConfig());
 
-  // Sync local state with synth when it changes externally
+  // Subscribe to synth config changes (e.g., from MCP)
   useEffect(() => {
-    // Check periodically for external changes (e.g., from MCP)
-    const interval = setInterval(() => {
-      const current = synth.getConfig();
-      // Simple shallow compare on key values
-      if (
-        current.waveform !== config.waveform ||
-        current.filterType !== config.filterType ||
-        current.filterCutoff !== config.filterCutoff ||
-        current.filterResonance !== config.filterResonance ||
-        current.reverbMix !== config.reverbMix ||
-        current.reverbDecay !== config.reverbDecay ||
-        current.reverbDamping !== config.reverbDamping
-      ) {
-        setConfig(current);
-      }
-    }, 100);
-    return () => clearInterval(interval);
-  }, [synth, config]);
+    return synth.subscribe(setConfig);
+  }, [synth]);
 
-  // Helper to update both synth and local state
+  // Helper to update synth (subscription handles local state)
   const updateConfig = (partial: Partial<SynthConfig>) => {
     synth.setConfig(partial);
-    setConfig(synth.getConfig());
   };
 
   return (

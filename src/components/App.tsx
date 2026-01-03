@@ -15,7 +15,8 @@ import { SequencerGrid, SequencerGridRef } from './SequencerGrid';
 import { MenuDefinition } from './MenuBar';
 import { WaveformVisualizer } from '../visualizers/waveform';
 import { ChatClient, createChatPanel } from '../chat';
-import { Pattern, createPattern } from '../sequencer/types';
+import { Pattern, createPattern, toggleNote, hasNote, clearPattern as clearPatternFn } from '../sequencer/types';
+import { setSequencerOps } from '../websocket-client';
 import { serializePattern, deserializePattern } from '../persistence';
 import {
   ProjectState,
@@ -59,11 +60,53 @@ export function App({ synth, chatClient }: Props) {
   const [envelope, setEnvelope] = useState<ADSREnvelope>(() => synth.getConfig().envelope);
   const [volume, setVolume] = useState(() => synth.getConfig().gain);
 
+  // Force update trigger for sequencer changes from MCP
+  const [, forceUpdate] = useState(0);
+
   // Refs
   const sequencerRef = useRef<SequencerGridRef>(null);
+  const patternRef = useRef(pattern);
   const waveformVizRef = useRef<WaveformVisualizer | null>(null);
   const waveformCanvasRef = useRef<HTMLCanvasElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
+
+  // Keep pattern ref in sync
+  useEffect(() => {
+    patternRef.current = pattern;
+  }, [pattern]);
+
+  // Expose sequencer operations for MCP
+  useEffect(() => {
+    setSequencerOps({
+      getPattern: () => patternRef.current,
+      getSequencer: () => sequencerRef.current!.getSequencer(),
+      setNote: (step: number, note: string, active?: boolean) => {
+        const pat = patternRef.current;
+        if (active === undefined) {
+          toggleNote(pat, step, note);
+        } else if (active && !hasNote(pat, step, note)) {
+          toggleNote(pat, step, note);
+        } else if (!active && hasNote(pat, step, note)) {
+          toggleNote(pat, step, note);
+        }
+      },
+      clearPattern: () => {
+        clearPatternFn(patternRef.current);
+      },
+      setPattern: (noteArrays: string[][]) => {
+        const pat = patternRef.current;
+        clearPatternFn(pat);
+        noteArrays.forEach((notes, step) => {
+          notes.forEach((note) => {
+            if (!hasNote(pat, step, note)) {
+              toggleNote(pat, step, note);
+            }
+          });
+        });
+      },
+      refresh: () => forceUpdate((n) => n + 1),
+    });
+  }, []);
 
   // Initialize waveform visualizer
   useEffect(() => {
@@ -95,24 +138,13 @@ export function App({ synth, chatClient }: Props) {
     }
   }, []); // Only on mount
 
-  // Sync with external synth changes (e.g., from MCP)
+  // Subscribe to synth config changes (e.g., from MCP)
   useEffect(() => {
-    const interval = setInterval(() => {
-      const config = synth.getConfig();
-      if (
-        config.envelope.attack !== envelope.attack ||
-        config.envelope.decay !== envelope.decay ||
-        config.envelope.sustain !== envelope.sustain ||
-        config.envelope.release !== envelope.release
-      ) {
-        setEnvelope(config.envelope);
-      }
-      if (config.gain !== volume) {
-        setVolume(config.gain);
-      }
-    }, 100);
-    return () => clearInterval(interval);
-  }, [synth, envelope, volume]);
+    return synth.subscribe((config) => {
+      setEnvelope(config.envelope);
+      setVolume(config.gain);
+    });
+  }, [synth]);
 
   // Auto-save before unload
   useEffect(() => {

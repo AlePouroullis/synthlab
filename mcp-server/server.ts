@@ -309,6 +309,114 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           required: [],
         },
       },
+      // Sequencer tools
+      {
+        name: 'get_pattern',
+        description:
+          'Get the current sequencer pattern as an array of steps, each containing active notes',
+        inputSchema: {
+          type: 'object',
+          properties: {},
+          required: [],
+        },
+      },
+      {
+        name: 'set_note',
+        description: 'Set or toggle a note in the sequencer pattern at a specific step',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            step: {
+              type: 'number',
+              minimum: 0,
+              maximum: 15,
+              description: 'Step index (0-15)',
+            },
+            note: {
+              type: 'string',
+              description: "Note name with octave (e.g., 'C4', 'F#4')",
+            },
+            active: {
+              type: 'boolean',
+              description:
+                'Whether the note should be active. If omitted, toggles the current state.',
+            },
+          },
+          required: ['step', 'note'],
+        },
+      },
+      {
+        name: 'clear_pattern',
+        description: 'Clear all notes from the sequencer pattern',
+        inputSchema: {
+          type: 'object',
+          properties: {},
+          required: [],
+        },
+      },
+      {
+        name: 'set_pattern',
+        description: 'Set the entire sequencer pattern. Each step is an array of note names.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            pattern: {
+              type: 'array',
+              items: {
+                type: 'array',
+                items: { type: 'string' },
+                description: "Array of note names for this step (e.g., ['C4', 'E4'])",
+              },
+              description: 'Array of 16 steps, each containing an array of active notes',
+            },
+          },
+          required: ['pattern'],
+        },
+      },
+      {
+        name: 'sequencer_play',
+        description: 'Start the sequencer playback',
+        inputSchema: {
+          type: 'object',
+          properties: {},
+          required: [],
+        },
+      },
+      {
+        name: 'sequencer_stop',
+        description: 'Stop the sequencer playback',
+        inputSchema: {
+          type: 'object',
+          properties: {},
+          required: [],
+        },
+      },
+      {
+        name: 'set_bpm',
+        description: 'Set the sequencer tempo in beats per minute',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            bpm: {
+              type: 'number',
+              minimum: 20,
+              maximum: 300,
+              description: 'Tempo in BPM',
+            },
+          },
+          required: ['bpm'],
+        },
+      },
+      {
+        name: 'get_sequencer_state',
+        description:
+          'Get the current sequencer state including BPM, playing status, and current step',
+        inputSchema: {
+          type: 'object',
+          properties: {},
+          required: [],
+        },
+      },
     ],
   };
 });
@@ -422,6 +530,63 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       case 'panic': {
         await sendCommand('panic');
         return { content: [{ type: 'text', text: 'All notes stopped' }] };
+      }
+
+      // Sequencer tools
+      case 'get_pattern': {
+        const pattern = await sendCommand('get_pattern');
+        return {
+          content: [{ type: 'text', text: JSON.stringify(pattern, null, 2) }],
+        };
+      }
+
+      case 'set_note': {
+        const { step, note, active } = args as { step: number; note: string; active?: boolean };
+        await sendCommand('set_note', { step, note, active });
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `${active === false ? 'Removed' : active === true ? 'Added' : 'Toggled'} ${note} at step ${step}`,
+            },
+          ],
+        };
+      }
+
+      case 'clear_pattern': {
+        await sendCommand('clear_pattern');
+        return { content: [{ type: 'text', text: 'Pattern cleared' }] };
+      }
+
+      case 'set_pattern': {
+        const { pattern } = args as { pattern: string[][] };
+        await sendCommand('set_pattern', { pattern });
+        return {
+          content: [{ type: 'text', text: `Pattern set with ${pattern.length} steps` }],
+        };
+      }
+
+      case 'sequencer_play': {
+        await sendCommand('sequencer_play');
+        return { content: [{ type: 'text', text: 'Sequencer started' }] };
+      }
+
+      case 'sequencer_stop': {
+        await sendCommand('sequencer_stop');
+        return { content: [{ type: 'text', text: 'Sequencer stopped' }] };
+      }
+
+      case 'set_bpm': {
+        const { bpm } = args as { bpm: number };
+        await sendCommand('set_bpm', { bpm });
+        return { content: [{ type: 'text', text: `BPM set to ${bpm}` }] };
+      }
+
+      case 'get_sequencer_state': {
+        const state = await sendCommand('get_sequencer_state');
+        return {
+          content: [{ type: 'text', text: JSON.stringify(state, null, 2) }],
+        };
       }
 
       default:

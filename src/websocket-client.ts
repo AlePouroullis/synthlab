@@ -7,6 +7,27 @@
  */
 
 import { SynthEngine, midiToFrequency } from './synth';
+import { Pattern, getNotesAtStep } from './sequencer/types';
+import { Sequencer } from './sequencer/sequencer';
+
+/**
+ * Interface for sequencer operations that can be set by the App component.
+ */
+export interface SequencerOps {
+  getPattern: () => Pattern;
+  getSequencer: () => Sequencer;
+  setNote: (step: number, note: string, active?: boolean) => void;
+  clearPattern: () => void;
+  setPattern: (notes: string[][]) => void;
+  refresh: () => void; // Force UI update
+}
+
+// Global sequencer operations (set by App component)
+let sequencerOps: SequencerOps | null = null;
+
+export function setSequencerOps(ops: SequencerOps): void {
+  sequencerOps = ops;
+}
 
 export class WebSocketClient {
   private ws: WebSocket | null = null;
@@ -185,6 +206,72 @@ export class WebSocketClient {
             el.classList.remove('pressed');
           });
           return { result: { stopped: true } };
+
+        // Sequencer commands
+        case 'get_pattern': {
+          if (!sequencerOps) return { error: 'Sequencer not available' };
+          const pattern = sequencerOps.getPattern();
+          // Convert pattern to array of note arrays
+          const result: string[][] = [];
+          for (let step = 0; step < pattern.length; step++) {
+            result.push(getNotesAtStep(pattern, step));
+          }
+          return { result };
+        }
+
+        case 'set_note': {
+          if (!sequencerOps) return { error: 'Sequencer not available' };
+          const { step, note, active } = payload;
+          sequencerOps.setNote(step, note, active);
+          sequencerOps.refresh();
+          return { result: { step, note, active } };
+        }
+
+        case 'clear_pattern': {
+          if (!sequencerOps) return { error: 'Sequencer not available' };
+          sequencerOps.clearPattern();
+          sequencerOps.refresh();
+          return { result: { cleared: true } };
+        }
+
+        case 'set_pattern': {
+          if (!sequencerOps) return { error: 'Sequencer not available' };
+          const { pattern: noteArrays } = payload;
+          sequencerOps.setPattern(noteArrays);
+          sequencerOps.refresh();
+          return { result: { steps: noteArrays.length } };
+        }
+
+        case 'sequencer_play': {
+          if (!sequencerOps) return { error: 'Sequencer not available' };
+          sequencerOps.getSequencer().play();
+          return { result: { playing: true } };
+        }
+
+        case 'sequencer_stop': {
+          if (!sequencerOps) return { error: 'Sequencer not available' };
+          sequencerOps.getSequencer().stop();
+          return { result: { playing: false } };
+        }
+
+        case 'set_bpm': {
+          if (!sequencerOps) return { error: 'Sequencer not available' };
+          const { bpm } = payload;
+          sequencerOps.getSequencer().bpm = bpm;
+          return { result: { bpm } };
+        }
+
+        case 'get_sequencer_state': {
+          if (!sequencerOps) return { error: 'Sequencer not available' };
+          const seq = sequencerOps.getSequencer();
+          return {
+            result: {
+              bpm: seq.bpm,
+              playing: seq.getState() === 'playing',
+              currentStep: seq.getCurrentStep(),
+            },
+          };
+        }
 
         default:
           return { error: `Unknown command: ${type}` };

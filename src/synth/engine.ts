@@ -9,6 +9,8 @@
 
 import { SynthConfig, DEFAULT_CONFIG } from './types';
 
+export type ConfigChangeListener = (config: SynthConfig) => void;
+
 export class SynthEngine {
   private audioContext: AudioContext | null = null;
   private masterGain: GainNode | null = null;
@@ -27,6 +29,9 @@ export class SynthEngine {
 
   // Current configuration
   private config: SynthConfig = { ...DEFAULT_CONFIG };
+
+  // Config change listeners
+  private listeners: Set<ConfigChangeListener> = new Set();
 
   /**
    * Initialize the audio context.
@@ -174,6 +179,25 @@ export class SynthEngine {
   }
 
   /**
+   * Subscribe to config changes.
+   * Returns an unsubscribe function.
+   */
+  subscribe(listener: ConfigChangeListener): () => void {
+    this.listeners.add(listener);
+    return () => this.listeners.delete(listener);
+  }
+
+  /**
+   * Notify all listeners of config change.
+   */
+  private emit(): void {
+    const config = this.getConfig();
+    for (const listener of this.listeners) {
+      listener(config);
+    }
+  }
+
+  /**
    * Update the synth configuration.
    */
   setConfig(config: Partial<SynthConfig>): void {
@@ -211,6 +235,9 @@ export class SynthEngine {
     if (config.envelope) {
       this.config.envelope = { ...this.config.envelope, ...config.envelope };
     }
+
+    // Notify listeners
+    this.emit();
   }
 
   /**
