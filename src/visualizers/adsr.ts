@@ -74,6 +74,13 @@ export class ADSRVisualizer {
 
     // Catch mouseup outside canvas (e.g., user drags outside and releases)
     window.addEventListener('mouseup', this.handleWindowMouseUp);
+
+    // Re-render when theme changes
+    const observer = new MutationObserver(() => this.render());
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-theme'],
+    });
   }
 
   private handleWindowMouseUp = () => {

@@ -6,7 +6,7 @@
 
 import { SynthEngine, DEFAULT_CONFIG, ADSREnvelope } from './synth';
 import { createPanel, createSlider, createSelect, formatValue } from './ui/controls';
-import { createKnob } from './ui/knob';
+import { createKnob, KnobBank } from './ui/knob';
 import { createKeyboard, isKeyboardInputEnabled, setKeyboardInputEnabled } from './ui/keyboard';
 import { createTooltip } from './ui/tooltip';
 import { WaveformVisualizer } from './visualizers/waveform';
@@ -38,24 +38,9 @@ const waveformViz = new WaveformVisualizer(visualizerCanvas);
 // ADSR envelope store (central state for two-way binding)
 const envelopeStore = new Store<ADSREnvelope>(DEFAULT_CONFIG.envelope);
 
-// Subscribe: when store changes, update synth + slider UI
+// Subscribe: when store changes, update synth
 envelopeStore.subscribe((envelope) => {
-  // Update synth
   synth.setConfig({ envelope });
-
-  // Update slider UI (sliders have IDs like "attack-slider", "attack-value")
-  const params = ['attack', 'decay', 'sustain', 'release'] as const;
-  const units: Record<string, string> = { attack: 's', decay: 's', sustain: '', release: 's' };
-
-  for (const param of params) {
-    const slider = document.getElementById(`${param}-slider`) as HTMLInputElement | null;
-    const valueSpan = document.getElementById(`${param}-value`) as HTMLElement | null;
-
-    if (slider && valueSpan) {
-      slider.value = String(envelope[param]);
-      valueSpan.textContent = formatValue(envelope[param], units[param]);
-    }
-  }
 });
 
 // ADSR visualizer instance
@@ -68,9 +53,69 @@ adsrViz.setConfig(envelopeStore.get(), (envelope) => {
   envelopeStore.set(envelope);
 });
 
-// Also subscribe visualizer to store (for when sliders change)
+// Also subscribe visualizer to store (for when knobs change)
 envelopeStore.subscribe((envelope) => {
   adsrViz.setConfig(envelope);
+});
+
+// ADSR knob bank (created here so store can update it)
+const adsrKnobBank = new KnobBank([
+  {
+    id: 'attack',
+    label: 'Attack',
+    min: 0.001,
+    max: 2,
+    value: DEFAULT_CONFIG.envelope.attack,
+    unit: 's',
+    onChange: (value) => {
+      synth.setConfig({ envelope: { ...synth.getConfig().envelope, attack: value } });
+      envelopeStore.set(synth.getConfig().envelope);
+    },
+  },
+  {
+    id: 'decay',
+    label: 'Decay',
+    min: 0.001,
+    max: 2,
+    value: DEFAULT_CONFIG.envelope.decay,
+    unit: 's',
+    onChange: (value) => {
+      synth.setConfig({ envelope: { ...synth.getConfig().envelope, decay: value } });
+      envelopeStore.set(synth.getConfig().envelope);
+    },
+  },
+  {
+    id: 'sustain',
+    label: 'Sustain',
+    min: 0,
+    max: 1,
+    value: DEFAULT_CONFIG.envelope.sustain,
+    unit: '',
+    onChange: (value) => {
+      synth.setConfig({ envelope: { ...synth.getConfig().envelope, sustain: value } });
+      envelopeStore.set(synth.getConfig().envelope);
+    },
+  },
+  {
+    id: 'release',
+    label: 'Release',
+    min: 0.001,
+    max: 3,
+    value: DEFAULT_CONFIG.envelope.release,
+    unit: 's',
+    onChange: (value) => {
+      synth.setConfig({ envelope: { ...synth.getConfig().envelope, release: value } });
+      envelopeStore.set(synth.getConfig().envelope);
+    },
+  },
+]);
+
+// Subscribe knob bank to store (for when visualizer changes values)
+envelopeStore.subscribe((envelope) => {
+  const units: Record<string, string> = { attack: 's', decay: 's', sustain: '', release: 's' };
+  for (const param of ['attack', 'decay', 'sustain', 'release'] as const) {
+    adsrKnobBank.setValue(param, envelope[param], units[param]);
+  }
 });
 
 /**
@@ -230,63 +275,9 @@ function buildUI(): void {
     )
   );
 
-  // Envelope panel
-  // Slider onChange publishes to store (store then updates visualizer)
-  const onEnvelopeChange = () => envelopeStore.set(synth.getConfig().envelope);
-
+  // Envelope panel (uses module-scope adsrKnobBank)
   const envPanel = createPanel('Envelope (ADSR)');
-  envPanel.appendChild(
-    createSlider(
-      synth,
-      'Attack',
-      'attack',
-      0.001,
-      2,
-      DEFAULT_CONFIG.envelope.attack,
-      's',
-      false,
-      onEnvelopeChange
-    )
-  );
-  envPanel.appendChild(
-    createSlider(
-      synth,
-      'Decay',
-      'decay',
-      0.001,
-      2,
-      DEFAULT_CONFIG.envelope.decay,
-      's',
-      false,
-      onEnvelopeChange
-    )
-  );
-  envPanel.appendChild(
-    createSlider(
-      synth,
-      'Sustain',
-      'sustain',
-      0,
-      1,
-      DEFAULT_CONFIG.envelope.sustain,
-      '',
-      false,
-      onEnvelopeChange
-    )
-  );
-  envPanel.appendChild(
-    createSlider(
-      synth,
-      'Release',
-      'release',
-      0.001,
-      3,
-      DEFAULT_CONFIG.envelope.release,
-      's',
-      false,
-      onEnvelopeChange
-    )
-  );
+  envPanel.appendChild(adsrKnobBank.getElement());
   envPanel.appendChild(adsrVisualizerCanvas);
 
   // Reverb panel

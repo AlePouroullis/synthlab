@@ -429,6 +429,74 @@ h1 {
   opacity: 1;
 }
 
+/* Knob bank (row of knobs) */
+.knob-bank {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 12px;
+}
+
+.knob-bank-values,
+.knob-bank-knobs,
+.knob-bank-labels {
+  display: flex;
+  justify-content: space-around;
+}
+
+.knob-bank-knobs {
+  margin-bottom: -2px;
+}
+
+.knob-bank-labels span {
+  flex: 1;
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.knob-bank-value-wrapper {
+  flex: 1;
+  text-align: center;
+  position: relative;
+}
+
+.knob-bank-value {
+  font-size: 0.75rem;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 3px;
+}
+
+.knob-bank-value:hover {
+  background: var(--bg-elevated);
+}
+
+.knob-bank-input {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 50px;
+  font-size: 0.75rem;
+  font-family: var(--font-main);
+  text-align: center;
+  padding: 2px 4px;
+  border: 1px solid var(--accent);
+  border-radius: 3px;
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  outline: none;
+}
+
+.knob-bank-input::-webkit-inner-spin-button,
+.knob-bank-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
 /* Button styling */
 button {
   background: var(--text-primary);
