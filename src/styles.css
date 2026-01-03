@@ -383,6 +383,52 @@ h1 {
   transform: scale(1.1);
 }
 
+/* Knob styling */
+.knob-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.knob-wrapper {
+  position: relative;
+}
+
+.knob-group label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.knob {
+  cursor: pointer;
+}
+
+.knob:hover {
+  filter: brightness(1.1);
+}
+
+.knob-tooltip {
+  position: absolute;
+  bottom: calc(100% + 2px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 0.75rem;
+  color: var(--text-primary);
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.1s ease;
+}
+
+.knob-tooltip.visible {
+  opacity: 1;
+}
+
 /* Button styling */
 button {
   background: var(--text-primary);

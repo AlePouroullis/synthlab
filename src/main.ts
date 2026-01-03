@@ -6,6 +6,7 @@
 
 import { SynthEngine, DEFAULT_CONFIG, ADSREnvelope } from './synth';
 import { createPanel, createSlider, createSelect, formatValue } from './ui/controls';
+import { createKnob } from './ui/knob';
 import { createKeyboard, isKeyboardInputEnabled, setKeyboardInputEnabled } from './ui/keyboard';
 import { createTooltip } from './ui/tooltip';
 import { WaveformVisualizer } from './visualizers/waveform';
@@ -302,7 +303,15 @@ function buildUI(): void {
 
   // Master panel
   const masterPanel = createPanel('Master');
-  masterPanel.appendChild(createSlider(synth, 'Volume', 'gain', 0, 1, DEFAULT_CONFIG.gain, ''));
+  masterPanel.appendChild(
+    createKnob({
+      label: 'Volume',
+      min: 0,
+      max: 1,
+      value: DEFAULT_CONFIG.gain,
+      onChange: (value) => synth.setConfig({ gain: value }),
+    })
+  );
 
   // Panic button (icon only with tooltip)
   const panicBtn = document.createElement('button');
