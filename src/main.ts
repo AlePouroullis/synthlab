@@ -9,11 +9,29 @@ import { createPanel, createSlider, createSelect, formatValue } from './ui/contr
 import { createKnob, KnobBank } from './ui/knob';
 import { createKeyboard, isKeyboardInputEnabled, setKeyboardInputEnabled } from './ui/keyboard';
 import { createTooltip } from './ui/tooltip';
+import { SequencerGrid } from './ui/sequencer-grid';
+import { MenuBar } from './ui/menu';
 import { WaveformVisualizer } from './visualizers/waveform';
 import { WebSocketClient } from './websocket-client';
 import { ChatClient, createChatPanel } from './chat';
 import { ADSRVisualizer } from './visualizers/adsr';
 import { Store } from './store';
+import { createPattern, Pattern, clearPattern } from './sequencer/types';
+import {
+  ProjectState,
+  CURRENT_VERSION,
+  serializePattern,
+  deserializePattern,
+  exportToFile,
+  importFromFile,
+  saveProject,
+  loadProject,
+  getProjectNames,
+  getCurrentProjectName,
+  setCurrentProjectName,
+  generateUniqueName,
+  projectExists,
+} from './persistence';
 
 // Create the synth engine
 const synth = new SynthEngine();
@@ -47,6 +65,12 @@ envelopeStore.subscribe((envelope) => {
 const adsrVisualizerCanvas = document.createElement('canvas');
 adsrVisualizerCanvas.setAttribute('id', 'adsr-visualizer');
 const adsrViz = new ADSRVisualizer(adsrVisualizerCanvas);
+
+// Sequencer pattern (may be replaced by loaded state)
+let pattern = createPattern(16);
+
+// Sequencer grid (set in buildUI, needed for save/load)
+let sequencerGrid: SequencerGrid | null = null;
 
 // Visualizer publishes to store on drag
 adsrViz.setConfig(envelopeStore.get(), (envelope) => {
@@ -213,6 +237,175 @@ function toggleTheme(): void {
 
 themeToggle?.addEventListener('click', toggleTheme);
 
+// ============================================================================
+// PROJECT PERSISTENCE
+// ============================================================================
+
+/**
+ * Gather current project state for saving.
+ */
+function gatherProjectState(): ProjectState {
+  return {
+    version: CURRENT_VERSION,
+    savedAt: new Date().toISOString(),
+    pattern: serializePattern(pattern),
+    synthConfig: synth.getConfig(),
+    sequencer: {
+      bpm: sequencerGrid?.getSequencer().bpm ?? 120,
+      octave: sequencerGrid?.getOctave() ?? 4,
+    },
+  };
+}
+
+/**
+ * Restore project state from loaded data.
+ */
+function restoreProjectState(state: ProjectState): void {
+  // Restore pattern
+  pattern = deserializePattern(state.pattern);
+
+  // Restore synth config
+  synth.setConfig(state.synthConfig);
+  envelopeStore.set(state.synthConfig.envelope);
+
+  // Restore sequencer grid state
+  sequencerGrid?.restoreState(pattern, state.sequencer.octave, state.sequencer.bpm);
+
+  console.log('Project restored from', state.savedAt);
+}
+
+/**
+ * Create a new project (reset to defaults).
+ */
+function handleNew(): void {
+  // Prompt for name
+  const name = promptProjectName(generateUniqueName());
+  if (!name) return;
+
+  // Clear pattern
+  pattern = createPattern(16);
+
+  // Reset synth to defaults
+  synth.setConfig(DEFAULT_CONFIG);
+  envelopeStore.set(DEFAULT_CONFIG.envelope);
+
+  // Reset sequencer grid
+  sequencerGrid?.restoreState(pattern, 4, 120);
+
+  // Save with new name
+  currentProjectName = name;
+  saveProject(currentProjectName, gatherProjectState());
+  updateProjectNameDisplay();
+  rebuildMenu();
+
+  console.log('New project created:', currentProjectName);
+}
+
+/**
+ * Save project to current name.
+ */
+function handleSave(): void {
+  const state = gatherProjectState();
+  saveProject(currentProjectName, state);
+  console.log('Project saved:', currentProjectName);
+}
+
+/**
+ * Save project with a new name.
+ */
+function handleSaveAs(): void {
+  const name = promptProjectName(currentProjectName);
+  if (!name) return;
+
+  if (projectExists(name) && name !== currentProjectName) {
+    if (!window.confirm(`"${name}" already exists. Overwrite?`)) {
+      return;
+    }
+  }
+
+  currentProjectName = name;
+  const state = gatherProjectState();
+  saveProject(currentProjectName, state);
+  updateProjectNameDisplay();
+  rebuildMenu();
+
+  console.log('Project saved as:', currentProjectName);
+}
+
+/**
+ * Open a project by name.
+ */
+function handleOpenProject(name: string): void {
+  const state = loadProject(name);
+  if (state) {
+    currentProjectName = name;
+    restoreProjectState(state);
+    updateProjectNameDisplay();
+    rebuildMenu();
+    console.log('Opened project:', name);
+  }
+}
+
+/**
+ * Export project to a JSON file.
+ */
+function handleExport(): void {
+  const state = gatherProjectState();
+  exportToFile(state);
+}
+
+/**
+ * Import project from a JSON file.
+ */
+async function handleImport(): Promise<void> {
+  try {
+    const state = await importFromFile();
+    restoreProjectState(state);
+  } catch (e) {
+    // User cancelled or error - just ignore
+    if ((e as Error).message !== 'File selection cancelled') {
+      console.error('Import failed:', e);
+    }
+  }
+}
+
+// Current project name
+let currentProjectName = getCurrentProjectName();
+
+/**
+ * Update the project name display in the header.
+ */
+function updateProjectNameDisplay(): void {
+  const titleEl = document.querySelector('header h1');
+  if (titleEl) {
+    titleEl.textContent = `SynthLab — ${currentProjectName}`;
+  }
+}
+
+/**
+ * Prompt for a project name (simple browser prompt for now).
+ */
+function promptProjectName(defaultName: string): string | null {
+  const name = window.prompt('Project name:', defaultName);
+  if (!name || !name.trim()) return null;
+  return name.trim();
+}
+
+// Auto-save to current project before page unload
+window.addEventListener('beforeunload', () => {
+  const state = gatherProjectState();
+  saveProject(currentProjectName, state);
+});
+
+// Load saved state on startup
+const savedState = loadProject(currentProjectName);
+if (savedState) {
+  pattern = deserializePattern(savedState.pattern);
+  synth.setConfig(savedState.synthConfig);
+  envelopeStore.set(savedState.synthConfig.envelope);
+  console.log('Loaded project:', currentProjectName);
+}
+
 /**
  * Build the UI.
  */
@@ -325,10 +518,125 @@ function buildUI(): void {
 
   // Keyboard
   controlsContainer.appendChild(createKeyboard(synth));
+
+  // Sequencer Grid
+  sequencerGrid = new SequencerGrid({
+    pattern,
+    synth,
+  });
+  controlsContainer.appendChild(sequencerGrid.getElement());
+
+  // Apply loaded state to sequencer grid (after it's created)
+  if (savedState) {
+    sequencerGrid.restoreState(pattern, savedState.sequencer.octave, savedState.sequencer.bpm);
+  }
+
+  // Expose sequencer for debugging
+  (window as any).sequencer = sequencerGrid.getSequencer();
 }
 
 // Initialize
 buildUI();
+
+// Detect platform for keyboard shortcuts
+const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+const modKey = isMac ? '⌘' : 'Ctrl+';
+
+// Menu bar container
+const menuBarContainer = document.getElementById('menu-bar-container');
+
+/**
+ * Build the menu bar with current project list.
+ */
+function buildMenu(): MenuBar {
+  const recentProjects = getProjectNames();
+
+  const fileItems: any[] = [
+    { label: 'New Project...', shortcut: `${modKey}N`, action: handleNew },
+    { separator: true },
+  ];
+
+  // Add recent projects
+  if (recentProjects.length > 0) {
+    for (const name of recentProjects.slice(0, 8)) {
+      fileItems.push({
+        label: name,
+        action: () => handleOpenProject(name),
+      });
+    }
+    fileItems.push({ separator: true });
+  }
+
+  fileItems.push(
+    { label: 'Import from File...', shortcut: `${modKey}O`, action: handleImport },
+    { separator: true },
+    { label: 'Save', shortcut: `${modKey}S`, action: handleSave },
+    { label: 'Save As...', action: handleSaveAs },
+    { separator: true },
+    { label: 'Export to File...', shortcut: `${modKey}⇧S`, action: handleExport }
+  );
+
+  return new MenuBar([
+    {
+      label: 'File',
+      items: fileItems,
+    },
+    {
+      label: 'Edit',
+      items: [
+        { label: 'Undo', shortcut: `${modKey}Z`, disabled: true },
+        { label: 'Redo', shortcut: `${modKey}⇧Z`, disabled: true },
+        { separator: true },
+        {
+          label: 'Clear Pattern',
+          action: () => {
+            clearPattern(pattern);
+            sequencerGrid?.restoreState(
+              pattern,
+              sequencerGrid.getOctave(),
+              sequencerGrid.getSequencer().bpm
+            );
+          },
+        },
+      ],
+    },
+  ]);
+}
+
+/**
+ * Rebuild the menu (e.g., after project list changes).
+ */
+function rebuildMenu(): void {
+  if (menuBarContainer) {
+    menuBarContainer.innerHTML = '';
+    menuBarContainer.appendChild(buildMenu().getElement());
+  }
+}
+
+// Initial menu build
+rebuildMenu();
+
+// Update project name display
+updateProjectNameDisplay();
+
+// Keyboard shortcuts for menu actions
+document.addEventListener('keydown', (e) => {
+  const mod = isMac ? e.metaKey : e.ctrlKey;
+
+  if (mod && e.key.toLowerCase() === 'n') {
+    e.preventDefault();
+    handleNew();
+  } else if (mod && e.key.toLowerCase() === 'o') {
+    e.preventDefault();
+    handleImport();
+  } else if (mod && e.key.toLowerCase() === 's' && !e.shiftKey) {
+    e.preventDefault();
+    handleSave();
+  } else if (mod && e.key.toLowerCase() === 's' && e.shiftKey) {
+    e.preventDefault();
+    handleExport();
+  }
+});
 
 console.log('SynthLab loaded! Press a key or click the keyboard to start.');
 console.log('Tip: Access the synth in console via `window.synth`');

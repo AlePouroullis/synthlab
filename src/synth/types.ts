@@ -70,3 +70,35 @@ export function getNoteInfo(midiNote: number): { name: string; octave: number; i
   const isBlack = name.includes('#');
   return { name, octave, isBlack };
 }
+
+/**
+ * Convert a note name (e.g., "C4", "F#3") to MIDI note number.
+ * Returns null if the note name is invalid.
+ */
+export function noteNameToMidi(noteName: string): number | null {
+  // Parse note name: letter + optional # + octave number
+  const match = noteName.match(/^([A-G])([#]?)(-?\d+)$/i);
+  if (!match) return null;
+
+  const [, letter, sharp, octaveStr] = match;
+  const noteBase = letter.toUpperCase();
+  const octave = parseInt(octaveStr, 10);
+
+  // Find index in NOTE_NAMES
+  const fullNote = sharp ? `${noteBase}#` : noteBase;
+  const noteIndex = NOTE_NAMES.indexOf(fullNote);
+  if (noteIndex === -1) return null;
+
+  // MIDI note = (octave + 1) * 12 + noteIndex
+  return (octave + 1) * 12 + noteIndex;
+}
+
+/**
+ * Convert a note name (e.g., "C4", "F#3") to frequency in Hz.
+ * Returns null if the note name is invalid.
+ */
+export function noteToFrequency(noteName: string): number | null {
+  const midi = noteNameToMidi(noteName);
+  if (midi === null) return null;
+  return midiToFrequency(midi);
+}
