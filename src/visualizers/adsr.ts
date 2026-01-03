@@ -113,14 +113,14 @@ export class ADSRVisualizer {
     }
   };
 
-  private handleMouseDown = (e: MouseEvent) => {
+  private handleMouseDown = (_e: MouseEvent) => {
     if (this.hoveredPoint) {
       this.draggingPoint = this.hoveredPoint;
       this.startAnimation();
     }
   };
 
-  private handleMouseUp = (e: MouseEvent) => {
+  private handleMouseUp = (_e: MouseEvent) => {
     if (this.draggingPoint) {
       this.draggingPoint = null;
       this.startAnimation();

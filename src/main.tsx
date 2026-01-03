@@ -6,18 +6,18 @@
 
 import { render } from 'preact';
 import { SynthEngine, DEFAULT_CONFIG, ADSREnvelope } from './synth';
-import { createPanel, createSlider, createSelect, formatValue } from './ui/controls';
+import { createPanel, createSlider, createSelect } from './ui/controls';
 import { createKnob, KnobBank } from './ui/knob';
 import { createKeyboard, isKeyboardInputEnabled, setKeyboardInputEnabled } from './ui/keyboard';
 import { createTooltip } from './ui/tooltip';
 import { SequencerGrid } from './ui/sequencer-grid';
-import { MenuBar } from './ui/menu';
+import { MenuBar, MenuDefinition } from './components/MenuBar';
 import { WaveformVisualizer } from './visualizers/waveform';
 import { WebSocketClient } from './websocket-client';
 import { ChatClient, createChatPanel } from './chat';
 import { ADSRVisualizer } from './visualizers/adsr';
 import { Store } from './store';
-import { createPattern, Pattern, clearPattern } from './sequencer/types';
+import { createPattern, clearPattern } from './sequencer/types';
 import {
   ProjectState,
   CURRENT_VERSION,
@@ -29,7 +29,6 @@ import {
   loadProject,
   getProjectNames,
   getCurrentProjectName,
-  setCurrentProjectName,
   generateUniqueName,
   projectExists,
 } from './persistence';
@@ -547,12 +546,12 @@ const modKey = isMac ? '⌘' : 'Ctrl+';
 const menuBarContainer = document.getElementById('menu-bar-container');
 
 /**
- * Build the menu bar with current project list.
+ * Build menu definitions for the menu bar.
  */
-function buildMenu(): MenuBar {
+function buildMenus(): MenuDefinition[] {
   const recentProjects = getProjectNames();
 
-  const fileItems: any[] = [
+  const fileItems: MenuDefinition['items'] = [
     { label: 'New Project...', shortcut: `${modKey}N`, action: handleNew },
     { separator: true },
   ];
@@ -577,7 +576,7 @@ function buildMenu(): MenuBar {
     { label: 'Export to File...', shortcut: `${modKey}⇧S`, action: handleExport }
   );
 
-  return new MenuBar([
+  return [
     {
       label: 'File',
       items: fileItems,
@@ -601,7 +600,7 @@ function buildMenu(): MenuBar {
         },
       ],
     },
-  ]);
+  ];
 }
 
 /**
@@ -609,8 +608,7 @@ function buildMenu(): MenuBar {
  */
 function rebuildMenu(): void {
   if (menuBarContainer) {
-    menuBarContainer.innerHTML = '';
-    menuBarContainer.appendChild(buildMenu().getElement());
+    render(<MenuBar menus={buildMenus()} />, menuBarContainer);
   }
 }
 

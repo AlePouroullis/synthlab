@@ -4,7 +4,7 @@
  * Named project storage using localStorage.
  */
 
-import { ProjectState, CURRENT_VERSION, migrateProject } from './types';
+import { ProjectState, migrateProject } from './types';
 
 const PROJECTS_KEY = 'synthlab-projects';
 const CURRENT_PROJECT_KEY = 'synthlab-current-project';

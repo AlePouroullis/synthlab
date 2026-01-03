@@ -4,7 +4,7 @@
  * localStorage auto-save and file export/import.
  */
 
-import { ProjectState, CURRENT_VERSION, migrateProject } from './types';
+import { ProjectState, migrateProject } from './types';
 
 const STORAGE_KEY = 'synthlab-project';
 
