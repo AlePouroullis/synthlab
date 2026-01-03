@@ -11,7 +11,7 @@ import { SynthControls } from './SynthControls';
 import { EnvelopePanel } from './EnvelopePanel';
 import { MasterPanel } from './MasterPanel';
 import { Keyboard } from './Keyboard';
-import { Sequencer, SequencerRef } from './Sequencer';
+import { SequencerGrid, SequencerGridRef } from './SequencerGrid';
 import { MenuDefinition } from './MenuBar';
 import { WaveformVisualizer } from '../visualizers/waveform';
 import { ChatClient, createChatPanel } from '../chat';
@@ -60,7 +60,7 @@ export function App({ synth, chatClient }: Props) {
   const [volume, setVolume] = useState(() => synth.getConfig().gain);
 
   // Refs
-  const sequencerRef = useRef<SequencerRef>(null);
+  const sequencerRef = useRef<SequencerGridRef>(null);
   const waveformVizRef = useRef<WaveformVisualizer | null>(null);
   const waveformCanvasRef = useRef<HTMLCanvasElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -335,7 +335,7 @@ export function App({ synth, chatClient }: Props) {
             <EnvelopePanel envelope={envelope} onChange={handleEnvelopeChange} />
             <MasterPanel synth={synth} volume={volume} onVolumeChange={handleVolumeChange} />
             <Keyboard synth={synth} />
-            <Sequencer ref={sequencerRef} pattern={pattern} synth={synth} />
+            <SequencerGrid ref={sequencerRef} pattern={pattern} synth={synth} />
           </div>
           <canvas id="visualizer" width="600" height="150" ref={waveformCanvasRef} />
         </div>
