@@ -551,35 +551,29 @@ const menuBarContainer = document.getElementById('menu-bar-container');
 function buildMenus(): MenuDefinition[] {
   const recentProjects = getProjectNames();
 
-  const fileItems: MenuDefinition['items'] = [
-    { label: 'New Project...', shortcut: `${modKey}N`, action: handleNew },
-    { separator: true },
-  ];
-
-  // Add recent projects
-  if (recentProjects.length > 0) {
-    for (const name of recentProjects.slice(0, 8)) {
-      fileItems.push({
-        label: name,
-        action: () => handleOpenProject(name),
-      });
-    }
-    fileItems.push({ separator: true });
-  }
-
-  fileItems.push(
-    { label: 'Import from File...', shortcut: `${modKey}O`, action: handleImport },
-    { separator: true },
-    { label: 'Save', shortcut: `${modKey}S`, action: handleSave },
-    { label: 'Save As...', action: handleSaveAs },
-    { separator: true },
-    { label: 'Export to File...', shortcut: `${modKey}⇧S`, action: handleExport }
-  );
+  // Build "Open Recent" submenu items
+  const recentSubmenu: MenuDefinition['items'] = recentProjects.slice(0, 8).map((name) => ({
+    label: name,
+    action: () => handleOpenProject(name),
+  }));
 
   return [
     {
       label: 'File',
-      items: fileItems,
+      items: [
+        { label: 'New Project...', shortcut: `${modKey}N`, action: handleNew },
+        { separator: true },
+        {
+          label: 'Open Recent',
+          submenu: recentSubmenu,
+          disabled: recentSubmenu.length === 0,
+        },
+        { label: 'Open from File...', shortcut: `${modKey}O`, action: handleImport },
+        { separator: true },
+        { label: 'Save', shortcut: `${modKey}S`, action: handleSave },
+        { label: 'Save As...', action: handleSaveAs },
+        { label: 'Save to File...', shortcut: `${modKey}⇧S`, action: handleExport },
+      ],
     },
     {
       label: 'Edit',

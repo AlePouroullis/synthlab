@@ -1180,6 +1180,38 @@ select:focus {
   margin: 4px 8px;
 }
 
+.menu-entry-wrapper {
+  position: relative;
+}
+
+.menu-entry-arrow {
+  margin-left: 12px;
+  font-size: 0.9rem;
+  opacity: 0.6;
+}
+
+.menu-entry:hover:not(.disabled) .menu-entry-arrow {
+  opacity: 1;
+}
+
+.menu-submenu {
+  position: absolute;
+  left: 100%;
+  top: 0;
+  min-width: 160px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 101;
+  display: none;
+}
+
+.menu-submenu.open {
+  display: block;
+}
+
 /* Responsive */
 @media (max-width: 900px) {
   .main-layout {
