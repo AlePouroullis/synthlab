@@ -47,7 +47,7 @@ src/
 │   ├── keyboard.ts       # Piano keyboard component
 │   └── index.ts
 ├── websocket-client.ts   # Browser ↔ MCP server bridge
-└── main.ts               # Application entry point
+└── main.tsx               # Application entry point
 
 mcp-server/
 ├── server.ts             # MCP tool definitions and WebSocket server

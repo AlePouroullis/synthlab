@@ -9,4 +9,8 @@ export default defineConfig({
   build: {
     outDir: 'dist',
   },
+  esbuild: {
+    jsx: 'automatic',
+    jsxImportSource: 'preact',
+  },
 });

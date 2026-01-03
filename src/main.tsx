@@ -4,6 +4,7 @@
  * Application entry point. Wires everything together.
  */
 
+import { render } from 'preact';
 import { SynthEngine, DEFAULT_CONFIG, ADSREnvelope } from './synth';
 import { createPanel, createSlider, createSelect, formatValue } from './ui/controls';
 import { createKnob, KnobBank } from './ui/knob';

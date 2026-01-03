@@ -30,6 +30,7 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.71.2",
     "@modelcontextprotocol/sdk": "^1.24.2",
+    "preact": "^10.28.0",
     "ws": "^8.18.3"
   }
 }
