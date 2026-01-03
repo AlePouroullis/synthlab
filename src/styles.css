@@ -326,6 +326,12 @@ h1 {
   margin-bottom: 20px;
 }
 
+.synth-controls-container,
+.keyboard-container,
+.app-container {
+  display: contents; /* Children participate in parent flex layout */
+}
+
 #adsr-visualizer {
   background: var(--bg-elevated);
   border: 1px solid var(--border-subtle);
