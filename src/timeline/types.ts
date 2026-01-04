@@ -25,6 +25,8 @@ export interface TrackEngine {
   trigger: (rowId: string, stepDuration: number) => void;
   /** Stop all sounds from this engine */
   panic: () => void;
+  /** Set the volume for this track (0-1) */
+  setVolume?: (value: number) => void;
 }
 
 /**

@@ -17,9 +17,10 @@ export interface TimelineRef {
 interface Props {
   tracks: Track[];
   onTrackChange?: (trackId: string) => void;
+  onVolumeChange?: (trackId: string, volume: number) => void;
 }
 
-export const Timeline = forwardRef<TimelineRef, Props>(({ tracks, onTrackChange }, ref) => {
+export const Timeline = forwardRef<TimelineRef, Props>(({ tracks, onTrackChange, onVolumeChange }, ref) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [bpm, setBpm] = useState(120);
@@ -62,15 +63,13 @@ export const Timeline = forwardRef<TimelineRef, Props>(({ tracks, onTrackChange 
     }
   }, []);
 
-  const handleVolumeChange = useCallback((track: Track, e: Event) => {
-    const value = parseFloat((e.target as HTMLInputElement).value);
-    track.volume = value;
-    // If the track engine has a setVolume method, call it
-    if ('setVolume' in track.engine) {
-      (track.engine as any).setVolume(value);
-    }
-    forceUpdate((n) => n + 1);
-  }, []);
+  const handleVolumeChange = useCallback(
+    (track: Track, e: Event) => {
+      const value = parseFloat((e.target as HTMLInputElement).value);
+      onVolumeChange?.(track.id, value);
+    },
+    [onVolumeChange]
+  );
 
   const handleMuteToggle = useCallback((track: Track) => {
     track.muted = !track.muted;

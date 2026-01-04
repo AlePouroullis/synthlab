@@ -19,6 +19,7 @@ import { Pattern, createPattern, toggleNote, hasNote, clearPattern as clearPatte
 import { setSequencerOps, setDrumEngineFactory } from '../websocket-client';
 import {
   Track,
+  TrackEngine,
   createChromaticRows,
   createDrumRows,
   createSynthTrackEngine,
@@ -59,6 +60,8 @@ export function App({ synth, chatClient }: Props) {
   });
   const [drumPattern, setDrumPattern] = useState<Pattern>(() => createPattern(16));
   const [octave, setOctave] = useState(4);
+  const [synthVolume, setSynthVolume] = useState(0.8);
+  const [drumVolume, setDrumVolume] = useState(0.8);
 
   // UI state
   const [chatVisible, setChatVisible] = useState(() => {
@@ -394,7 +397,28 @@ export function App({ synth, chatClient }: Props) {
     }
   }, []);
 
-  // Build tracks for Timeline
+  // Placeholder engine for when audio isn't initialized yet
+  const placeholderEngine: TrackEngine = {
+    trigger: () => {},
+    panic: () => {},
+    setVolume: () => {},
+  };
+
+  // Handle track volume changes
+  const handleTrackVolumeChange = useCallback(
+    (trackId: string, value: number) => {
+      if (trackId === 'synth') {
+        setSynthVolume(value);
+        synth.setConfig({ gain: value });
+      } else if (trackId === 'drums') {
+        setDrumVolume(value);
+        drumEngine?.setVolume(value);
+      }
+    },
+    [synth, drumEngine]
+  );
+
+  // Build tracks for Timeline (always show both, use placeholder if engine not ready)
   const tracks: Track[] = [
     {
       id: 'synth',
@@ -402,23 +426,19 @@ export function App({ synth, chatClient }: Props) {
       rows: createChromaticRows(octave),
       pattern: synthPattern,
       engine: createSynthTrackEngine(synth),
-      volume: 0.8,
+      volume: synthVolume,
       muted: false,
     },
-  ];
-
-  // Add drum track if drum engine is available
-  if (drumEngine) {
-    tracks.push({
+    {
       id: 'drums',
       name: 'Drums',
       rows: createDrumRows(),
       pattern: drumPattern,
-      engine: createDrumTrackEngine(drumEngine),
-      volume: 0.8,
+      engine: drumEngine ? createDrumTrackEngine(drumEngine) : placeholderEngine,
+      volume: drumVolume,
       muted: false,
-    });
-  }
+    },
+  ];
 
   return (
     <>
@@ -436,7 +456,7 @@ export function App({ synth, chatClient }: Props) {
             <EnvelopePanel envelope={envelope} onChange={handleEnvelopeChange} />
             <MasterPanel synth={synth} volume={volume} onVolumeChange={handleVolumeChange} />
             <Keyboard synth={synth} />
-            <Timeline ref={timelineRef} tracks={tracks} />
+            <Timeline ref={timelineRef} tracks={tracks} onVolumeChange={handleTrackVolumeChange} />
           </div>
           <canvas id="visualizer" width="600" height="150" ref={waveformCanvasRef} />
         </div>

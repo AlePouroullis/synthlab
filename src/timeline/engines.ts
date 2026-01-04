@@ -48,6 +48,10 @@ export function createSynthTrackEngine(synth: SynthEngine): TrackEngine {
       activeNotes.clear();
       synth.panic();
     },
+
+    setVolume(value: number) {
+      synth.setConfig({ gain: value });
+    },
   };
 }
 
@@ -64,6 +68,10 @@ export function createDrumTrackEngine(drums: DrumEngine): TrackEngine {
 
     panic() {
       // Drums are one-shot, no sustained sounds to stop
+    },
+
+    setVolume(value: number) {
+      drums.setVolume(value);
     },
   };
 }
