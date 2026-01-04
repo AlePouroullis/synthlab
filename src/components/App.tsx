@@ -5,18 +5,25 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'preact/hooks';
-import { SynthEngine, ADSREnvelope, DEFAULT_CONFIG } from '../synth';
+import { SynthEngine, ADSREnvelope, DEFAULT_CONFIG, DrumEngine } from '../synth';
 import { Header } from './Header';
 import { SynthControls } from './SynthControls';
 import { EnvelopePanel } from './EnvelopePanel';
 import { MasterPanel } from './MasterPanel';
 import { Keyboard } from './Keyboard';
-import { SequencerGrid, SequencerGridRef } from './SequencerGrid';
+import { Timeline, TimelineRef } from './Timeline';
 import { MenuDefinition } from './MenuBar';
 import { WaveformVisualizer } from '../visualizers/waveform';
 import { ChatClient, createChatPanel } from '../chat';
 import { Pattern, createPattern, toggleNote, hasNote, clearPattern as clearPatternFn } from '../sequencer/types';
-import { setSequencerOps } from '../websocket-client';
+import { setSequencerOps, setDrumEngineFactory } from '../websocket-client';
+import {
+  Track,
+  createChromaticRows,
+  createDrumRows,
+  createSynthTrackEngine,
+  createDrumTrackEngine,
+} from '../timeline';
 import { serializePattern, deserializePattern } from '../persistence';
 import {
   ProjectState,
@@ -46,10 +53,12 @@ interface Props {
 export function App({ synth, chatClient }: Props) {
   // Project state
   const [projectName, setProjectName] = useState(getCurrentProjectName);
-  const [pattern, setPattern] = useState<Pattern>(() => {
+  const [synthPattern, setSynthPattern] = useState<Pattern>(() => {
     const saved = loadProject(getCurrentProjectName());
     return saved ? deserializePattern(saved.pattern) : createPattern(16);
   });
+  const [drumPattern, setDrumPattern] = useState<Pattern>(() => createPattern(16));
+  const [octave, setOctave] = useState(4);
 
   // UI state
   const [chatVisible, setChatVisible] = useState(() => {
@@ -60,28 +69,47 @@ export function App({ synth, chatClient }: Props) {
   const [envelope, setEnvelope] = useState<ADSREnvelope>(() => synth.getConfig().envelope);
   const [volume, setVolume] = useState(() => synth.getConfig().gain);
 
-  // Force update trigger for sequencer changes from MCP
+  // Drum engine (created when audio is initialized)
+  const [drumEngine, setDrumEngine] = useState<DrumEngine | null>(null);
+
+  // Force update trigger for changes from MCP
   const [, forceUpdate] = useState(0);
 
   // Refs
-  const sequencerRef = useRef<SequencerGridRef>(null);
-  const patternRef = useRef(pattern);
+  const timelineRef = useRef<TimelineRef>(null);
+  const synthPatternRef = useRef(synthPattern);
+  const drumPatternRef = useRef(drumPattern);
   const waveformVizRef = useRef<WaveformVisualizer | null>(null);
   const waveformCanvasRef = useRef<HTMLCanvasElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
-  // Keep pattern ref in sync
+  // Keep pattern refs in sync
   useEffect(() => {
-    patternRef.current = pattern;
-  }, [pattern]);
+    synthPatternRef.current = synthPattern;
+  }, [synthPattern]);
 
-  // Expose sequencer operations for MCP
+  useEffect(() => {
+    drumPatternRef.current = drumPattern;
+  }, [drumPattern]);
+
+  // Set up drum engine factory for MCP (creates DrumEngine lazily when needed)
+  useEffect(() => {
+    setDrumEngineFactory(() => {
+      const ctx = synth.getAudioContext();
+      if (!ctx) return null;
+      const engine = new DrumEngine(ctx, ctx.destination);
+      setDrumEngine(engine);
+      return engine;
+    });
+  }, [synth]);
+
+  // Expose sequencer operations for MCP (synth pattern for now)
   useEffect(() => {
     setSequencerOps({
-      getPattern: () => patternRef.current,
-      getSequencer: () => sequencerRef.current!.getSequencer(),
+      getPattern: () => synthPatternRef.current,
+      getSequencer: () => timelineRef.current!.getTransport() as any, // TODO: proper interface
       setNote: (step: number, note: string, active?: boolean) => {
-        const pat = patternRef.current;
+        const pat = synthPatternRef.current;
         if (active === undefined) {
           toggleNote(pat, step, note);
         } else if (active && !hasNote(pat, step, note)) {
@@ -91,10 +119,10 @@ export function App({ synth, chatClient }: Props) {
         }
       },
       clearPattern: () => {
-        clearPatternFn(patternRef.current);
+        clearPatternFn(synthPatternRef.current);
       },
       setPattern: (noteArrays: string[][]) => {
-        const pat = patternRef.current;
+        const pat = synthPatternRef.current;
         clearPatternFn(pat);
         noteArrays.forEach((notes, step) => {
           notes.forEach((note) => {
@@ -130,10 +158,9 @@ export function App({ synth, chatClient }: Props) {
       synth.setConfig(saved.synthConfig);
       setEnvelope(saved.synthConfig.envelope);
       setVolume(saved.synthConfig.gain);
-      // Sequencer state is restored via the pattern prop
-      setTimeout(() => {
-        sequencerRef.current?.restoreState(pattern, saved.sequencer.octave, saved.sequencer.bpm);
-      }, 0);
+      if (saved.sequencer?.octave) {
+        setOctave(saved.sequencer.octave);
+      }
       console.log('Loaded project:', projectName);
     }
   }, []); // Only on mount
@@ -154,7 +181,7 @@ export function App({ synth, chatClient }: Props) {
     };
     window.addEventListener('beforeunload', handleUnload);
     return () => window.removeEventListener('beforeunload', handleUnload);
-  }, [projectName, pattern]);
+  }, [projectName, synthPattern]);
 
   // Chat visibility persistence
   useEffect(() => {
@@ -165,11 +192,19 @@ export function App({ synth, chatClient }: Props) {
   const ensureAudio = useCallback(async () => {
     if (synth.isInitialized()) return;
     await synth.initialize();
+
+    // Create drum engine now that we have an audio context
+    const ctx = synth.getAudioContext();
+    if (ctx && !drumEngine) {
+      const drums = new DrumEngine(ctx, ctx.destination);
+      setDrumEngine(drums);
+    }
+
     const analyser = synth.getAnalyser();
     if (analyser && waveformVizRef.current) {
       waveformVizRef.current.start(analyser);
     }
-  }, [synth]);
+  }, [synth, drumEngine]);
 
   // Expose for keyboard module
   useEffect(() => {
@@ -181,32 +216,34 @@ export function App({ synth, chatClient }: Props) {
     return {
       version: CURRENT_VERSION,
       savedAt: new Date().toISOString(),
-      pattern: serializePattern(pattern),
+      pattern: serializePattern(synthPattern),
       synthConfig: synth.getConfig(),
       sequencer: {
-        bpm: sequencerRef.current?.getSequencer().bpm ?? 120,
-        octave: sequencerRef.current?.getOctave() ?? 4,
+        bpm: timelineRef.current?.getTransport().bpm ?? 120,
+        octave: octave,
       },
     };
-  }, [pattern, synth]);
+  }, [synthPattern, synth, octave]);
 
   // Project handlers
   const handleNew = useCallback(() => {
     const name = window.prompt('Project name:', generateUniqueName());
     if (!name?.trim()) return;
 
-    const newPattern = createPattern(16);
-    setPattern(newPattern);
+    const newSynthPattern = createPattern(16);
+    const newDrumPattern = createPattern(16);
+    setSynthPattern(newSynthPattern);
+    setDrumPattern(newDrumPattern);
     synth.setConfig(DEFAULT_CONFIG);
     setEnvelope(DEFAULT_CONFIG.envelope);
     setVolume(DEFAULT_CONFIG.gain);
-    sequencerRef.current?.restoreState(newPattern, 4, 120);
+    setOctave(4);
 
     setProjectName(name.trim());
     saveProject(name.trim(), {
       version: CURRENT_VERSION,
       savedAt: new Date().toISOString(),
-      pattern: serializePattern(newPattern),
+      pattern: serializePattern(newSynthPattern),
       synthConfig: DEFAULT_CONFIG,
       sequencer: { bpm: 120, octave: 4 },
     });
@@ -240,12 +277,15 @@ export function App({ synth, chatClient }: Props) {
     const state = loadProject(name);
     if (state) {
       const loadedPattern = deserializePattern(state.pattern);
-      setPattern(loadedPattern);
+      setSynthPattern(loadedPattern);
+      setDrumPattern(createPattern(16)); // Reset drum pattern for now
       synth.setConfig(state.synthConfig);
       setEnvelope(state.synthConfig.envelope);
       setVolume(state.synthConfig.gain);
       setProjectName(name);
-      sequencerRef.current?.restoreState(loadedPattern, state.sequencer.octave, state.sequencer.bpm);
+      if (state.sequencer?.octave) {
+        setOctave(state.sequencer.octave);
+      }
       console.log('Opened project:', name);
     }
   }, [synth]);
@@ -259,11 +299,14 @@ export function App({ synth, chatClient }: Props) {
     try {
       const state = await importFromFile();
       const loadedPattern = deserializePattern(state.pattern);
-      setPattern(loadedPattern);
+      setSynthPattern(loadedPattern);
+      setDrumPattern(createPattern(16)); // Reset drum pattern for now
       synth.setConfig(state.synthConfig);
       setEnvelope(state.synthConfig.envelope);
       setVolume(state.synthConfig.gain);
-      sequencerRef.current?.restoreState(loadedPattern, state.sequencer.octave, state.sequencer.bpm);
+      if (state.sequencer?.octave) {
+        setOctave(state.sequencer.octave);
+      }
     } catch (e) {
       if ((e as Error).message !== 'File selection cancelled') {
         console.error('Import failed:', e);
@@ -344,12 +387,38 @@ export function App({ synth, chatClient }: Props) {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [toggleChat, handleNew, handleImport, handleSave, handleExport]);
 
-  // Expose sequencer for debugging
+  // Expose transport for debugging
   useEffect(() => {
-    if (sequencerRef.current) {
-      (window as any).sequencer = sequencerRef.current.getSequencer();
+    if (timelineRef.current) {
+      (window as any).transport = timelineRef.current.getTransport();
     }
   }, []);
+
+  // Build tracks for Timeline
+  const tracks: Track[] = [
+    {
+      id: 'synth',
+      name: 'Synth',
+      rows: createChromaticRows(octave),
+      pattern: synthPattern,
+      engine: createSynthTrackEngine(synth),
+      volume: 0.8,
+      muted: false,
+    },
+  ];
+
+  // Add drum track if drum engine is available
+  if (drumEngine) {
+    tracks.push({
+      id: 'drums',
+      name: 'Drums',
+      rows: createDrumRows(),
+      pattern: drumPattern,
+      engine: createDrumTrackEngine(drumEngine),
+      volume: 0.8,
+      muted: false,
+    });
+  }
 
   return (
     <>
@@ -367,7 +436,7 @@ export function App({ synth, chatClient }: Props) {
             <EnvelopePanel envelope={envelope} onChange={handleEnvelopeChange} />
             <MasterPanel synth={synth} volume={volume} onVolumeChange={handleVolumeChange} />
             <Keyboard synth={synth} />
-            <SequencerGrid ref={sequencerRef} pattern={pattern} synth={synth} />
+            <Timeline ref={timelineRef} tracks={tracks} />
           </div>
           <canvas id="visualizer" width="600" height="150" ref={waveformCanvasRef} />
         </div>

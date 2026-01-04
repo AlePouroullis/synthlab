@@ -417,6 +417,39 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           required: [],
         },
       },
+      // Drum tools
+      {
+        name: 'trigger_drum',
+        description:
+          'Trigger a drum sound. Available drums: kick, snare, hihat-closed, hihat-open. Drums are synthesized (not samples) using oscillators and noise.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            drum: {
+              type: 'string',
+              enum: ['kick', 'snare', 'hihat-closed', 'hihat-open'],
+              description: 'The drum sound to trigger',
+            },
+          },
+          required: ['drum'],
+        },
+      },
+      {
+        name: 'set_drum_volume',
+        description: 'Set the overall drum volume (0-1)',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            volume: {
+              type: 'number',
+              minimum: 0,
+              maximum: 1,
+              description: 'Drum volume (0-1)',
+            },
+          },
+          required: ['volume'],
+        },
+      },
     ],
   };
 });
@@ -587,6 +620,19 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         return {
           content: [{ type: 'text', text: JSON.stringify(state, null, 2) }],
         };
+      }
+
+      // Drum tools
+      case 'trigger_drum': {
+        const { drum } = args as { drum: string };
+        await sendCommand('trigger_drum', { drum });
+        return { content: [{ type: 'text', text: `Triggered ${drum}` }] };
+      }
+
+      case 'set_drum_volume': {
+        const { volume } = args as { volume: number };
+        await sendCommand('set_drum_volume', { volume });
+        return { content: [{ type: 'text', text: `Drum volume set to ${volume}` }] };
       }
 
       default:

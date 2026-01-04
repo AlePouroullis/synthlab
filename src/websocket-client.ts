@@ -6,7 +6,7 @@
  * Receives commands and sends responses.
  */
 
-import { SynthEngine, midiToFrequency } from './synth';
+import { SynthEngine, midiToFrequency, DrumEngine, DrumType } from './synth';
 import { Pattern, getNotesAtStep } from './sequencer/types';
 import { Sequencer } from './sequencer/sequencer';
 
@@ -27,6 +27,23 @@ let sequencerOps: SequencerOps | null = null;
 
 export function setSequencerOps(ops: SequencerOps): void {
   sequencerOps = ops;
+}
+
+// Global drum engine (created lazily when first drum command is received)
+let drumEngine: DrumEngine | null = null;
+
+// Factory to create drum engine (needs synth reference)
+let drumEngineFactory: (() => DrumEngine | null) | null = null;
+
+export function setDrumEngineFactory(factory: () => DrumEngine | null): void {
+  drumEngineFactory = factory;
+}
+
+function getOrCreateDrumEngine(): DrumEngine | null {
+  if (!drumEngine && drumEngineFactory) {
+    drumEngine = drumEngineFactory();
+  }
+  return drumEngine;
 }
 
 export class WebSocketClient {
@@ -271,6 +288,27 @@ export class WebSocketClient {
               currentStep: seq.getCurrentStep(),
             },
           };
+        }
+
+        // Drum commands
+        case 'trigger_drum': {
+          const drums = getOrCreateDrumEngine();
+          if (!drums) return { error: 'Drum engine not available (synth not initialized)' };
+          const { drum } = payload;
+          const validDrums: DrumType[] = ['kick', 'snare', 'hihat-closed', 'hihat-open'];
+          if (!validDrums.includes(drum)) {
+            return { error: `Invalid drum type: ${drum}. Valid types: ${validDrums.join(', ')}` };
+          }
+          drums.trigger(drum as DrumType);
+          return { result: { triggered: drum } };
+        }
+
+        case 'set_drum_volume': {
+          const drums = getOrCreateDrumEngine();
+          if (!drums) return { error: 'Drum engine not available (synth not initialized)' };
+          const { volume } = payload;
+          drums.setVolume(volume);
+          return { result: { volume } };
         }
 
         default:
