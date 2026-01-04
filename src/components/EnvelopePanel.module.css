@@ -1,0 +1,14 @@
+/**
+ * EnvelopePanel styles
+ */
+
+.container {
+  display: contents;
+}
+
+.visualizer {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  width: 100%;
+}

@@ -7,6 +7,7 @@
 import { useState, useEffect, useCallback } from 'preact/hooks';
 import { MenuBar, MenuDefinition } from './MenuBar';
 import { Tooltip } from './Tooltip';
+import styles from './Header.module.css';
 
 const THEME_KEY = 'synthlab-theme';
 
@@ -33,24 +34,24 @@ export function Header({ projectName, menus, onChatToggle, chatVisible }: Props)
   }, []);
 
   return (
-    <header>
-      <div class="header-left">
-        <h1>SynthLab — {projectName}</h1>
+    <header class={styles.header}>
+      <div class={styles.headerLeft}>
+        <h1 class={styles.title}>SynthLab — {projectName}</h1>
         <nav>
           <MenuBar menus={menus} />
         </nav>
       </div>
-      <div class="header-right">
-        <span id="mcp-status" class="mcp-status"></span>
+      <div class={styles.headerRight}>
+        <span id="mcp-status" class={styles.mcpStatus}></span>
 
         <button
           id="theme-toggle"
-          class="icon-btn"
+          class={styles.iconBtn}
           aria-label="Toggle theme"
           onClick={toggleTheme}
         >
           <svg
-            class="icon-sun"
+            class={styles.iconSun}
             width="18"
             height="18"
             viewBox="0 0 24 24"
@@ -62,7 +63,7 @@ export function Header({ projectName, menus, onChatToggle, chatVisible }: Props)
             <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
           </svg>
           <svg
-            class="icon-moon"
+            class={styles.iconMoon}
             width="18"
             height="18"
             viewBox="0 0 24 24"
@@ -76,7 +77,7 @@ export function Header({ projectName, menus, onChatToggle, chatVisible }: Props)
 
         <button
           id="chat-toggle"
-          class={`chat-toggle ${chatVisible ? 'active' : ''}`}
+          class={`${styles.chatToggle} ${chatVisible ? styles.chatToggleActive : ''}`}
           aria-label="Toggle chat panel"
           onClick={onChatToggle}
         >

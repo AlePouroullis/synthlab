@@ -5,28 +5,29 @@
  */
 
 import { ChatClient } from './client';
+import styles from './Chat.module.css';
 
 const API_KEY_STORAGE_KEY = 'synthlab_api_key';
 
 export function createChatPanel(chatClient: ChatClient): HTMLDivElement {
   const panel = document.createElement('div');
-  panel.className = 'chat-panel';
+  panel.className = styles.panel;
 
   // Header
   const header = document.createElement('div');
-  header.className = 'chat-header';
+  header.className = styles.header;
   header.innerHTML = '<h3>Chat</h3>';
   panel.appendChild(header);
 
   // Messages container
   const messages = document.createElement('div');
-  messages.className = 'chat-messages';
+  messages.className = styles.messages;
   messages.id = 'chat-messages';
   panel.appendChild(messages);
 
   // Input area
   const inputArea = document.createElement('div');
-  inputArea.className = 'chat-input-area';
+  inputArea.className = styles.inputArea;
 
   const input = document.createElement('input');
   input.type = 'text';
@@ -45,7 +46,7 @@ export function createChatPanel(chatClient: ChatClient): HTMLDivElement {
 
   // API key setup
   const apiKeyArea = document.createElement('div');
-  apiKeyArea.className = 'api-key-area';
+  apiKeyArea.className = styles.apiKeyArea;
   apiKeyArea.id = 'api-key-area';
 
   const apiKeyInput = document.createElement('input');
@@ -89,7 +90,7 @@ export function createChatPanel(chatClient: ChatClient): HTMLDivElement {
     input.disabled = false;
     sendBtn.disabled = false;
     input.placeholder = 'Ask Claude to play something...';
-    apiKeyArea.classList.add('connected');
+    apiKeyArea.classList.add(styles.apiKeyAreaConnected);
   }
 
   // Send message handler
@@ -123,7 +124,13 @@ export function createChatPanel(chatClient: ChatClient): HTMLDivElement {
   function addMessage(role: 'user' | 'assistant' | 'system', content: string): string {
     const id = `msg-${Date.now()}`;
     const msg = document.createElement('div');
-    msg.className = `chat-message ${role}`;
+    const roleClass =
+      role === 'user'
+        ? styles.messageUser
+        : role === 'assistant'
+          ? styles.messageAssistant
+          : styles.messageSystem;
+    msg.className = `${styles.message} ${roleClass}`;
     msg.id = id;
     msg.textContent = content;
     messages.appendChild(msg);

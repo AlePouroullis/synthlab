@@ -8,6 +8,7 @@ import { useState, useEffect, useCallback, useRef } from 'preact/hooks';
 import { SynthEngine } from '../synth/engine';
 import { midiToFrequency, getNoteInfo } from '../synth/types';
 import { Tooltip } from './Tooltip';
+import styles from './Keyboard.module.css';
 
 // Storage keys
 const KEYBOARD_ENABLED_KEY = 'synthlab-keyboard-enabled';
@@ -198,14 +199,14 @@ export function Keyboard({ synth }: Props) {
     keys.push(
       <div
         key={midiNote}
-        class={`key ${isBlack ? 'black' : ''} ${isPressed ? 'pressed' : ''}`}
+        class={`${styles.key} ${isBlack ? styles.keyBlack : ''} ${isPressed ? styles.keyPressed : ''}`}
         data-note={midiNote}
         style={style}
         onMouseDown={() => handleMouseDown(midiNote)}
         onMouseUp={() => handleMouseUp(midiNote)}
         onMouseLeave={() => handleMouseUp(midiNote)}
       >
-        {keyLabel && <span class="key-label">{keyLabel}</span>}
+        {keyLabel && <span class={styles.keyLabel}>{keyLabel}</span>}
       </div>
     );
   }
@@ -214,17 +215,17 @@ export function Keyboard({ synth }: Props) {
 
   return (
     <div class="control-panel" style={{ width: '100%' }}>
-      <div class="keyboard-header">
+      <div class={styles.keyboardHeader}>
         <h3>Keyboard</h3>
 
-        <span class="octave-wrapper">
-          <span id="octave-display" class="octave-display">
+        <span class={styles.octaveWrapper}>
+          <span id="octave-display" class={styles.octaveDisplay}>
             C{currentOctave}
           </span>
           <Tooltip text="[Z]/[X] to shift octave" />
         </span>
 
-        <label class="keyboard-toggle">
+        <label class={styles.keyboardToggle}>
           <input
             type="checkbox"
             checked={keyboardEnabled}
@@ -235,7 +236,7 @@ export function Keyboard({ synth }: Props) {
         </label>
       </div>
 
-      <div class="keyboard">{keys}</div>
+      <div class={styles.keyboard}>{keys}</div>
     </div>
   );
 }

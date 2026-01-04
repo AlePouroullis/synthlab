@@ -38,6 +38,7 @@ import {
   generateUniqueName,
   projectExists,
 } from '../persistence';
+import styles from './App.module.css';
 
 // Storage keys
 const CHAT_VISIBLE_KEY = 'synthlab-chat-visible';
@@ -67,6 +68,7 @@ export function App({ synth, chatClient }: Props) {
   const [chatVisible, setChatVisible] = useState(() => {
     return localStorage.getItem(CHAT_VISIBLE_KEY) !== 'false';
   });
+  const [activeView, setActiveView] = useState<'synth' | 'timeline'>('synth');
 
   // Synth state
   const [envelope, setEnvelope] = useState<ADSREnvelope>(() => synth.getConfig().envelope);
@@ -449,22 +451,43 @@ export function App({ synth, chatClient }: Props) {
         onChatToggle={toggleChat}
       />
 
-      <div class="main-layout">
-        <div class="synth-section">
-          <div id="synth-controls">
+      <div class={styles.mainLayout}>
+        <div class={styles.synthSection}>
+          {/* View toggle tabs */}
+          <div class={styles.viewTabs}>
+            <button
+              class={`${styles.viewTab} ${activeView === 'synth' ? styles.viewTabActive : ''}`}
+              onClick={() => setActiveView('synth')}
+            >
+              Synth
+            </button>
+            <button
+              class={`${styles.viewTab} ${activeView === 'timeline' ? styles.viewTabActive : ''}`}
+              onClick={() => setActiveView('timeline')}
+            >
+              Timeline
+            </button>
+          </div>
+
+          {/* Synth view */}
+          <div class={`${styles.synthControls} ${activeView !== 'synth' ? 'hidden' : ''}`}>
             <SynthControls synth={synth} />
             <EnvelopePanel envelope={envelope} onChange={handleEnvelopeChange} />
             <MasterPanel synth={synth} volume={volume} onVolumeChange={handleVolumeChange} />
             <Keyboard synth={synth} />
+          </div>
+
+          {/* Timeline view - always mounted to preserve transport state */}
+          <div class={`${styles.timelineView} ${activeView !== 'timeline' ? 'hidden' : ''}`}>
             <Timeline ref={timelineRef} tracks={tracks} onVolumeChange={handleTrackVolumeChange} />
           </div>
-          <canvas id="visualizer" width="600" height="150" ref={waveformCanvasRef} />
+
+          <canvas class={styles.visualizer} width="600" height="150" ref={waveformCanvasRef} />
         </div>
 
         <div
-          id="chat-container"
           ref={chatContainerRef}
-          class={chatVisible ? '' : 'hidden'}
+          class={`${styles.chatContainer} ${chatVisible ? '' : styles.chatContainerHidden}`}
         />
       </div>
     </>

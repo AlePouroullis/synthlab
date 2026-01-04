@@ -1,0 +1,157 @@
+/**
+ * Keyboard styles
+ */
+
+.container {
+  display: contents;
+}
+
+.keyboardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.keyboardHeader h3 {
+  margin: 0;
+}
+
+.octaveWrapper {
+  position: relative;
+  margin-left: 8px;
+}
+
+.octaveDisplay {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  background: var(--bg-elevated);
+  padding: 2px 8px;
+  border-radius: 4px;
+  cursor: default;
+}
+
+.octaveWrapper .tooltip {
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 6px;
+}
+
+.octaveWrapper:hover .tooltip {
+  opacity: 1;
+}
+
+.keyboardToggle {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
+}
+
+.keyboardToggle input[type='checkbox'] {
+  width: 14px;
+  height: 14px;
+  accent-color: var(--text-primary);
+  cursor: pointer;
+}
+
+.keyboardToggle span {
+  transition: color 0.15s;
+}
+
+.keyboardToggle:hover span {
+  color: var(--text-secondary);
+}
+
+.keyboardToggle .tooltip {
+  top: 100%;
+  right: 0;
+  margin-top: 6px;
+}
+
+.keyboardToggle:hover .tooltip {
+  opacity: 1;
+}
+
+/* Key labels */
+.keyLabel {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.6rem;
+  font-weight: 500;
+  color: #999;
+  pointer-events: none;
+  text-transform: uppercase;
+}
+
+.keyBlack .keyLabel {
+  bottom: 6px;
+  color: #666;
+}
+
+/* Keyboard container */
+.keyboard {
+  position: relative;
+  display: flex;
+  gap: 2px;
+  margin-top: 16px;
+}
+
+/* Keys */
+.key {
+  position: relative;
+  width: 40px;
+  height: 140px;
+  background: var(--key-white);
+  border: 1px solid var(--key-border);
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+  cursor: pointer;
+  transition:
+    background 0.05s,
+    transform 0.05s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.key:hover {
+  background: var(--key-white-hover);
+}
+
+.key:active,
+.keyPressed {
+  background: var(--key-white-active);
+  transform: translateY(2px);
+  box-shadow: none;
+}
+
+.keyBlack {
+  position: absolute;
+  width: 26px;
+  height: 90px;
+  background: var(--key-black);
+  z-index: 1;
+  border-radius: 0 0 3px 3px;
+  border: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  transition:
+    background 0.05s,
+    transform 0.05s;
+}
+
+.keyBlack:hover {
+  background: var(--key-black-hover);
+}
+
+.keyBlack:active,
+.keyBlack.keyPressed {
+  background: var(--key-black-active);
+  box-shadow: none;
+}

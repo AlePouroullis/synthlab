@@ -5,6 +5,7 @@
  */
 
 import { useEffect, useRef, useState } from 'preact/hooks';
+import styles from './Header.module.css';
 
 export type MenuItem =
   | {
@@ -93,14 +94,14 @@ export function MenuBar({ menus }: Props) {
 
   const renderMenuItem = (item: MenuItem, index: number) => {
     if ('separator' in item && item.separator) {
-      return <div class="menu-separator" key={`sep-${index}`} />;
+      return <div class={styles.menuSeparator} key={`sep-${index}`} />;
     }
 
     const hasSubmenu = item.submenu && item.submenu.length > 0;
 
     return (
       <div
-        class={`menu-entry-wrapper ${hasSubmenu ? 'has-submenu' : ''}`}
+        class={styles.menuEntryWrapper}
         key={item.label}
         onMouseEnter={() => {
           if (hasSubmenu) {
@@ -111,22 +112,22 @@ export function MenuBar({ menus }: Props) {
         }}
       >
         <button
-          class={`menu-entry ${item.disabled ? 'disabled' : ''}`}
+          class={`${styles.menuEntry} ${item.disabled ? styles.menuEntryDisabled : ''}`}
           disabled={item.disabled && !hasSubmenu}
           onClick={(e) => handleItemClick(item, e)}
         >
-          <span class="menu-entry-label">{item.label}</span>
-          {item.shortcut && <span class="menu-entry-shortcut">{item.shortcut}</span>}
-          {hasSubmenu && <span class="menu-entry-arrow">›</span>}
+          <span class={styles.menuEntryLabel}>{item.label}</span>
+          {item.shortcut && <span class={styles.menuEntryShortcut}>{item.shortcut}</span>}
+          {hasSubmenu && <span class={styles.menuEntryArrow}>›</span>}
         </button>
         {hasSubmenu && openSubmenuLabel === item.label && (
-          <div class="menu-submenu open">
+          <div class={`${styles.menuSubmenu} ${styles.menuSubmenuOpen}`}>
             {item.submenu!.map((subItem, subIndex) =>
               'separator' in subItem && subItem.separator ? (
-                <div class="menu-separator" key={`sub-sep-${subIndex}`} />
+                <div class={styles.menuSeparator} key={`sub-sep-${subIndex}`} />
               ) : (
                 <button
-                  class={`menu-entry ${subItem.disabled ? 'disabled' : ''}`}
+                  class={`${styles.menuEntry} ${subItem.disabled ? styles.menuEntryDisabled : ''}`}
                   disabled={subItem.disabled}
                   onClick={(e) => {
                     e.stopPropagation();
@@ -138,8 +139,8 @@ export function MenuBar({ menus }: Props) {
                   }}
                   key={subItem.label}
                 >
-                  <span class="menu-entry-label">{subItem.label}</span>
-                  {subItem.shortcut && <span class="menu-entry-shortcut">{subItem.shortcut}</span>}
+                  <span class={styles.menuEntryLabel}>{subItem.label}</span>
+                  {subItem.shortcut && <span class={styles.menuEntryShortcut}>{subItem.shortcut}</span>}
                 </button>
               )
             )}
@@ -150,17 +151,17 @@ export function MenuBar({ menus }: Props) {
   };
 
   return (
-    <div class="menu-bar" ref={containerRef}>
+    <div class={styles.menuBar} ref={containerRef}>
       {menus.map((menu) => (
-        <div class="menu-item" key={menu.label}>
+        <div class={styles.menuItem} key={menu.label}>
           <button
-            class={`menu-button ${openMenuLabel === menu.label ? 'active' : ''}`}
+            class={`${styles.menuButton} ${openMenuLabel === menu.label ? styles.menuButtonActive : ''}`}
             onClick={(e) => handleMenuButtonClick(menu.label, e)}
             onMouseEnter={() => handleMenuButtonHover(menu.label)}
           >
             {menu.label}
           </button>
-          <div class={`menu-dropdown ${openMenuLabel === menu.label ? 'open' : ''}`}>
+          <div class={`${styles.menuDropdown} ${openMenuLabel === menu.label ? styles.menuDropdownOpen : ''}`}>
             {menu.items.map((item, index) => renderMenuItem(item, index))}
           </div>
         </div>

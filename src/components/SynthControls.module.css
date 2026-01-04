@@ -1,0 +1,7 @@
+/**
+ * SynthControls panel styles
+ */
+
+.container {
+  display: contents; /* Children participate in parent flex layout */
+}

@@ -8,6 +8,7 @@
 import { useCallback } from 'preact/hooks';
 import { Pattern, toggleNote, hasNote } from '../sequencer/types';
 import { RowDef } from '../timeline/types';
+import styles from './TrackGrid.module.css';
 
 interface Props {
   rows: RowDef[];
@@ -28,7 +29,7 @@ export function TrackGrid({ rows, pattern, currentStep, isPlaying, onPatternChan
 
   // Render row labels (top to bottom)
   const rowLabels = rows.map((row) => (
-    <div key={row.id} class={`track-row-label ${row.accent ? 'accent' : ''}`}>
+    <div key={row.id} class={`${styles.rowLabel} ${row.accent ? styles.rowLabelAccent : ''}`}>
       {row.label}
     </div>
   ));
@@ -41,7 +42,7 @@ export function TrackGrid({ rows, pattern, currentStep, isPlaying, onPatternChan
       return (
         <div
           key={row.id}
-          class={`track-cell ${row.accent ? 'accent' : ''} ${isActive ? 'active' : ''}`}
+          class={`${styles.cell} ${row.accent ? styles.cellAccent : ''} ${isActive ? styles.cellActive : ''}`}
           onClick={() => handleCellClick(step, row.id)}
         />
       );
@@ -50,7 +51,7 @@ export function TrackGrid({ rows, pattern, currentStep, isPlaying, onPatternChan
     columns.push(
       <div
         key={step}
-        class={`track-column ${step % 4 === 0 ? 'beat-start' : ''} ${currentStep === step && isPlaying ? 'playing' : ''}`}
+        class={`${styles.column} ${step % 4 === 0 ? styles.columnBeatStart : ''} ${currentStep === step && isPlaying ? styles.columnPlaying : ''}`}
       >
         {cells}
       </div>
@@ -58,9 +59,9 @@ export function TrackGrid({ rows, pattern, currentStep, isPlaying, onPatternChan
   }
 
   return (
-    <div class="track-grid">
-      <div class="track-labels">{rowLabels}</div>
-      <div class="track-steps">{columns}</div>
+    <div class={styles.grid}>
+      <div class={styles.labels}>{rowLabels}</div>
+      <div class={styles.steps}>{columns}</div>
     </div>
   );
 }

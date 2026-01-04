@@ -1,0 +1,36 @@
+/**
+ * MasterPanel styles
+ */
+
+.container {
+  display: contents;
+}
+
+.panicBtn {
+  position: relative;
+  padding: 8px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+}
+
+.panicBtn:hover {
+  background: var(--error);
+  border-color: var(--error);
+  color: var(--text-primary);
+}
+
+.panicBtn svg {
+  display: block;
+}
+
+.panicBtn .tooltip {
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 8px;
+}
+
+.panicBtn:hover .tooltip {
+  opacity: 1;
+}

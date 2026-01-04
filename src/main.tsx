@@ -9,6 +9,8 @@ import { SynthEngine } from './synth';
 import { App } from './components/App';
 import { WebSocketClient } from './websocket-client';
 import { ChatClient } from './chat';
+import './styles/global.css';
+import keyboardStyles from './components/Keyboard.module.css';
 
 // Create the synth engine
 const synth = new SynthEngine();
@@ -39,7 +41,7 @@ document.addEventListener('keydown', (e) => {
     const newState = !isKeyboardInputEnabled();
     setKeyboardInputEnabled(newState);
     const checkbox = document.querySelector(
-      '.keyboard-toggle input[type="checkbox"]'
+      `.${keyboardStyles.keyboardToggle} input[type="checkbox"]`
     ) as HTMLInputElement;
     if (checkbox) checkbox.checked = newState;
   }

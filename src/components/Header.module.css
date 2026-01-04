@@ -1,0 +1,259 @@
+/**
+ * Header styles
+ */
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.title {
+  margin: 0;
+  padding-right: 12px;
+  border-right: 1px solid var(--border);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* MCP status indicator */
+.mcpStatus {
+  display: flex;
+  align-items: center;
+  height: 34px;
+  padding: 0 10px;
+  border-radius: 6px;
+  font-size: 0.65rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.mcpStatusConnected {
+  background: rgba(74, 222, 128, 0.15);
+  color: var(--success);
+}
+
+.mcpStatusDisconnected {
+  background: rgba(248, 113, 113, 0.15);
+  color: var(--error);
+}
+
+.mcpStatusConnecting {
+  background: rgba(251, 191, 36, 0.15);
+  color: var(--warning);
+}
+
+/* Icon buttons */
+.iconBtn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  background: transparent;
+  border: 1px solid var(--border);
+  padding: 0;
+  border-radius: 6px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.iconBtn:hover {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  border-color: var(--border);
+  transform: none;
+}
+
+.iconBtn svg {
+  display: block;
+}
+
+/* Chat toggle */
+.chatToggle {
+  composes: iconBtn;
+}
+
+.chatToggleActive {
+  background: var(--text-primary);
+  color: var(--bg-base);
+  border-color: var(--text-primary);
+}
+
+/* Theme toggle icons */
+:global([data-theme='dark']) .iconSun {
+  display: block;
+}
+:global([data-theme='dark']) .iconMoon {
+  display: none;
+}
+:global([data-theme='light']) .iconSun {
+  display: none;
+}
+:global([data-theme='light']) .iconMoon {
+  display: block;
+}
+
+/* Menu bar */
+.menuBar {
+  display: flex;
+  gap: 2px;
+}
+
+.menuItem {
+  position: relative;
+}
+
+.menuButton {
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.1s ease;
+}
+
+.menuButton:hover,
+.menuButtonActive {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+}
+
+.menuDropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 180px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+  display: none;
+}
+
+.menuDropdownOpen {
+  display: block;
+}
+
+.menuEntry {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  color: var(--text-primary);
+  cursor: pointer;
+  text-align: left;
+}
+
+.menuEntry:hover:not(.menuEntryDisabled) {
+  background: var(--accent);
+  color: var(--bg-base);
+}
+
+.menuEntry:hover:not(.menuEntryDisabled) .menuEntryShortcut {
+  color: var(--bg-base);
+  opacity: 0.7;
+}
+
+.menuEntryDisabled {
+  color: var(--text-muted);
+  cursor: default;
+  pointer-events: none;
+}
+
+.menuEntryLabel {
+  flex: 1;
+}
+
+.menuEntryShortcut {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-left: 16px;
+}
+
+.menuSeparator {
+  height: 1px;
+  background: var(--border-subtle);
+  margin: 4px 8px;
+}
+
+.menuEntryWrapper {
+  position: relative;
+}
+
+.menuEntryArrow {
+  margin-left: 12px;
+  font-size: 0.9rem;
+  opacity: 0.6;
+}
+
+.menuEntry:hover:not(.menuEntryDisabled) .menuEntryArrow {
+  opacity: 1;
+}
+
+.menuSubmenu {
+  position: absolute;
+  left: 100%;
+  top: 0;
+  min-width: 160px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 101;
+  display: none;
+}
+
+.menuSubmenuOpen {
+  display: block;
+}
+
+/* Tooltip */
+.tooltip {
+  top: 100%;
+  right: 0;
+  margin-top: 8px;
+}
+
+.chatToggle:hover .tooltip {
+  opacity: 1;
+}
+
+@media (max-width: 900px) {
+  .headerLeft {
+    flex-direction: column;
+    gap: 4px;
+  }
+}

@@ -9,6 +9,7 @@ import { forwardRef } from 'preact/compat';
 import { Track } from '../timeline/types';
 import { Transport } from '../timeline/transport';
 import { TrackGrid } from './TrackGrid';
+import styles from './Timeline.module.css';
 
 export interface TimelineRef {
   getTransport: () => Transport;
@@ -85,9 +86,9 @@ export const Timeline = forwardRef<TimelineRef, Props>(({ tracks, onTrackChange,
   );
 
   return (
-    <div class="timeline">
+    <div class={styles.timeline}>
       {/* Transport controls */}
-      <div class="timeline-transport">
+      <div class={styles.transport}>
         <button class="transport-btn play-btn" onClick={handlePlayToggle}>
           {isPlaying ? (
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
@@ -107,14 +108,14 @@ export const Timeline = forwardRef<TimelineRef, Props>(({ tracks, onTrackChange,
       </div>
 
       {/* Tracks */}
-      <div class="timeline-tracks">
+      <div class={styles.tracks}>
         {tracks.map((track) => (
-          <div key={track.id} class={`timeline-track ${track.muted ? 'muted' : ''}`}>
+          <div key={track.id} class={`${styles.track} ${track.muted ? styles.trackMuted : ''}`}>
             {/* Track header */}
-            <div class="track-header">
-              <span class="track-name">{track.name}</span>
+            <div class={styles.trackHeader}>
+              <span class={styles.trackName}>{track.name}</span>
               <button
-                class={`track-mute-btn ${track.muted ? 'active' : ''}`}
+                class={`${styles.trackMuteBtn} ${track.muted ? styles.trackMuteBtnActive : ''}`}
                 onClick={() => handleMuteToggle(track)}
                 title={track.muted ? 'Unmute' : 'Mute'}
               >
@@ -122,7 +123,7 @@ export const Timeline = forwardRef<TimelineRef, Props>(({ tracks, onTrackChange,
               </button>
               <input
                 type="range"
-                class="track-volume"
+                class={styles.trackVolume}
                 min="0"
                 max="1"
                 step="0.01"
